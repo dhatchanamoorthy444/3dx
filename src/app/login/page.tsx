@@ -8,7 +8,7 @@ import { Dumbbell, Lock, Mail, ArrowRight } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isLoggedIn, botDetected } = useCalisthenics();
+  const { login, isLoggedIn, botDetected, setBotDetected } = useCalisthenics();
   const [emailOrUsername, setEmailOrUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
