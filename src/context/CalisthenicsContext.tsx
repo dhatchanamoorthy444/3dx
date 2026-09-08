@@ -202,60 +202,17 @@ export function calculateLevelsFromAssessment(assessment: UserAssessment) {
 }
 
 export const CalisthenicsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [profile, setProfile] = useState<UserProfile>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const savedProf = localStorage.getItem(STORAGE_KEY_PROFILE);
-        if (savedProf) return JSON.parse(savedProf);
-      } catch {}
-    }
-    return DEFAULT_PROFILE;
-  });
-  const [exercises, setExercises] = useState<Exercise[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const savedEx = localStorage.getItem(STORAGE_KEY_EXERCISES);
-        if (savedEx) return JSON.parse(savedEx);
-      } catch {}
-    }
-    return INITIAL_EXERCISES;
-  });
-  const [skills, setSkills] = useState<SkillNode[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const savedSk = localStorage.getItem(STORAGE_KEY_SKILLS);
-        if (savedSk) return JSON.parse(savedSk);
-      } catch {}
-    }
-    return INITIAL_SKILLS;
-  });
-  const [foods, setFoods] = useState<FoodItem[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const savedFd = localStorage.getItem(STORAGE_KEY_FOODS);
-        if (savedFd) return JSON.parse(savedFd);
-      } catch {}
-    }
-    return INITIAL_FOODS_DATABASE;
-  });
+  const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
+  const [exercises, setExercises] = useState<Exercise[]>(INITIAL_EXERCISES);
+  const [skills, setSkills] = useState<SkillNode[]>(INITIAL_SKILLS);
+  const [foods, setFoods] = useState<FoodItem[]>(INITIAL_FOODS_DATABASE);
   const [dailyMissions, setDailyMissions] = useState<DailyMissionItem[]>(INITIAL_MISSIONS);
   const [achievements] = useState<AchievementBadge[]>(INITIAL_ACHIEVEMENTS);
   const [friends, _setFriends] = useState<FriendUser[]>(INITIAL_FRIENDS);
   const [challenges, _setChallenges] = useState<ConsistencyChallenge[]>(INITIAL_CHALLENGES);
 
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('cali_is_logged_in') === 'true';
-    }
-    return false;
-  });
-  const [currentUser, setCurrentUser] = useState<{ username: string; email: string; role: string } | null>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('cali_current_user');
-      if (saved) return JSON.parse(saved);
-    }
-    return null;
-  });
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [currentUser, setCurrentUser] = useState<{ username: string; email: string; role: string } | null>(null);
   const [botDetected, setBotDetected] = useState(false);
 
   const [currentNutrition, setCurrentNutrition] = useState<DailyNutritionLog>(() => {
@@ -290,6 +247,33 @@ export const CalisthenicsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(profile));
     } catch {}
   }, [profile]);
+  useEffect(() => {
+    try {
+      const savedProf = localStorage.getItem(STORAGE_KEY_PROFILE);
+      if (savedProf) setProfile(JSON.parse(savedProf));
+    } catch {}
+    try {
+      const savedEx = localStorage.getItem(STORAGE_KEY_EXERCISES);
+      if (savedEx) setExercises(JSON.parse(savedEx));
+    } catch {}
+    try {
+      const savedSk = localStorage.getItem(STORAGE_KEY_SKILLS);
+      if (savedSk) setSkills(JSON.parse(savedSk));
+    } catch {}
+    try {
+      const savedFd = localStorage.getItem(STORAGE_KEY_FOODS);
+      if (savedFd) setFoods(JSON.parse(savedFd));
+    } catch {}
+    try {
+      const savedLogin = localStorage.getItem('cali_is_logged_in');
+      if (savedLogin === 'true') setIsLoggedIn(true);
+    } catch {}
+    try {
+      const savedUser = localStorage.getItem('cali_current_user');
+      if (savedUser) setCurrentUser(JSON.parse(savedUser));
+    } catch {}
+  }, []);
+
 
   const computedSkills = useMemo(() => {
     return skills.map(skill => {
