@@ -13,7 +13,11 @@ import {
   FoodItem,
   MealLogItem,
   DailyNutritionLog,
-  UserRole
+  DailyMissionItem,
+  AchievementBadge,
+  DailyCheckIn,
+  FriendUser,
+  ConsistencyChallenge
 } from '../types/calisthenics';
 import { EXERCISES_DATABASE as INITIAL_EXERCISES, LEVEL_DEFINITIONS } from '../data/exercises';
 import { SKILL_TREE as INITIAL_SKILLS } from '../data/skills';
@@ -26,10 +30,17 @@ interface CalisthenicsContextType {
   skills: SkillNode[];
   foods: FoodItem[];
   currentNutrition: DailyNutritionLog;
+  dailyMissions: DailyMissionItem[];
+  achievements: AchievementBadge[];
+  friends: FriendUser[];
+  challenges: ConsistencyChallenge[];
+  
   updateAssessment: (assessment: UserAssessment) => void;
   updateEquipment: (equipment: Equipment[]) => void;
   completeWorkout: (log: Omit<WorkoutLog, 'id' | 'date'>) => void;
   toggleMealEaten: (foodId: string) => void;
+  toggleMissionCompleted: (missionId: string) => void;
+  saveCheckIn: (checkIn: DailyCheckIn) => void;
   checkSkillUnlocks: (prs?: Record<string, PersonalRecord>) => void;
   updateFatigue: (fatigue: 'low' | 'moderate' | 'high') => void;
   toggleUserRole: () => void;
@@ -61,6 +72,36 @@ interface CalisthenicsContextType {
   };
 }
 
+const INITIAL_MISSIONS: DailyMissionItem[] = [
+  { id: 'm_workout', title: 'Main Mission', category: 'main', xpReward: 100, completed: false, description: 'Complete today\'s recommended workout session.' },
+  { id: 'm_pushups', title: 'Strength Mission', category: 'strength', xpReward: 75, completed: false, description: 'Complete 3 sets of unbroken push-up variations.' },
+  { id: 'm_handstand', title: 'Skill Mission', category: 'skill', xpReward: 75, completed: false, description: 'Practice freestanding handstand or wall hold for 10 mins.' },
+  { id: 'm_nutrition', title: 'Nutrition Mission', category: 'nutrition', xpReward: 50, completed: false, description: 'Hit your daily protein target (130g).' },
+  { id: 'm_mobility', title: 'Recovery Mission', category: 'recovery', xpReward: 25, completed: false, description: 'Perform 5 minutes of wrist & shoulder decompression mobility.' },
+  { id: 'm_streak', title: 'Streak Protection Mission', category: 'streak', xpReward: 100, completed: true, description: 'Maintain your active daily streak.' }
+];
+
+const INITIAL_ACHIEVEMENTS: AchievementBadge[] = [
+  { id: 'ach_first_workout', title: 'First Step', description: 'Completed your first official workout session', icon: '🏆', xpReward: 100, unlocked: true },
+  { id: 'ach_streak_7', title: 'On Fire 🔥', description: 'Maintained a 7-day streak', icon: '🔥', xpReward: 250, unlocked: false },
+  { id: 'ach_streak_30', title: 'Unstoppable 🔥🔥', description: 'Maintained a 30-day streak', icon: '⚡', xpReward: 500, unlocked: false },
+  { id: 'ach_100_workouts', title: 'Iron Athlete', description: 'Logged 100 total workout sessions', icon: '🦾', xpReward: 1000, unlocked: false },
+  { id: 'ach_pull_master', title: 'Pull Master', description: 'Reached 10 unbroken pull-ups PR', icon: '🧗', xpReward: 300, unlocked: false },
+  { id: 'ach_handstand', title: 'Handstand Balance', description: 'Held a freestanding handstand for 30s', icon: '🤸', xpReward: 400, unlocked: false },
+  { id: 'ach_muscle_up', title: 'First Muscle-Up', description: 'Unlocked and logged your first muscle-up', icon: '💀', xpReward: 750, unlocked: false },
+  { id: 'ach_elite', title: 'Elite Tier', description: 'Reached Level 7 Elite status', icon: '👑', xpReward: 1500, unlocked: false }
+];
+
+const INITIAL_FRIENDS: FriendUser[] = [
+  { id: 'fr_1', username: 'sam_pulls', name: 'Sam Miller', streak: 14, xp: 3200 },
+  { id: 'fr_2', username: 'rahul_cali', name: 'Rahul Sharma', streak: 21, xp: 4800 },
+  { id: 'fr_3', username: 'chris_handstand', name: 'Chris Evans', streak: 8, xp: 1900 }
+];
+
+const INITIAL_CHALLENGES: ConsistencyChallenge[] = [
+  { id: 'ch_1', friendId: 'fr_1', friendName: 'Sam Miller', title: '7-Day Consistency Challenge', daysDuration: 7, myProgress: 5, friendProgress: 4, completed: false }
+];
+
 const DEFAULT_ASSESSMENT: UserAssessment = {
   completed: false,
   age: 24,
@@ -89,9 +130,9 @@ const DEFAULT_PROFILE: UserProfile = {
   username: 'athlete123',
   email: 'athlete@caliroadmap.com',
   name: 'Athlete',
-  role: 'admin', // Seeded demo account with admin capabilities enabled for testing
-  xp: 250,
-  streak: 2,
+  role: 'admin',
+  xp: 450,
+  streak: 3,
   lastWorkoutDate: undefined,
   assessment: DEFAULT_ASSESSMENT,
   levels: {
@@ -113,10 +154,10 @@ const DEFAULT_PROFILE: UserProfile = {
   fatigueLevel: 'low'
 };
 
-const STORAGE_KEY_PROFILE = 'cali_profile_v2';
-const STORAGE_KEY_EXERCISES = 'cali_exercises_v2';
-const STORAGE_KEY_SKILLS = 'cali_skills_v2';
-const STORAGE_KEY_FOODS = 'cali_foods_v2';
+const STORAGE_KEY_PROFILE = 'cali_profile_v3';
+const STORAGE_KEY_EXERCISES = 'cali_exercises_v3';
+const STORAGE_KEY_SKILLS = 'cali_skills_v3';
+const STORAGE_KEY_FOODS = 'cali_foods_v3';
 
 const CalisthenicsContext = createContext<CalisthenicsContextType | undefined>(undefined);
 
@@ -158,8 +199,11 @@ export const CalisthenicsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [exercises, setExercises] = useState<Exercise[]>(INITIAL_EXERCISES);
   const [skills, setSkills] = useState<SkillNode[]>(INITIAL_SKILLS);
   const [foods, setFoods] = useState<FoodItem[]>(INITIAL_FOODS_DATABASE);
+  const [dailyMissions, setDailyMissions] = useState<DailyMissionItem[]>(INITIAL_MISSIONS);
+  const [achievements, setAchievements] = useState<AchievementBadge[]>(INITIAL_ACHIEVEMENTS);
+  const [friends, setFriends] = useState<FriendUser[]>(INITIAL_FRIENDS);
+  const [challenges, setChallenges] = useState<ConsistencyChallenge[]>(INITIAL_CHALLENGES);
 
-  // Initialize today's nutrition log state
   const [currentNutrition, setCurrentNutrition] = useState<DailyNutritionLog>(() => {
     const todayStr = new Date().toISOString().split('T')[0];
     const initialMeals: MealLogItem[] = INITIAL_FOODS_DATABASE.slice(0, 5).map(f => ({
@@ -187,7 +231,6 @@ export const CalisthenicsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     };
   });
 
-  // Load local state on mount
   useEffect(() => {
     try {
       const savedProf = localStorage.getItem(STORAGE_KEY_PROFILE);
@@ -201,37 +244,15 @@ export const CalisthenicsProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
       const savedFd = localStorage.getItem(STORAGE_KEY_FOODS);
       if (savedFd) setFoods(JSON.parse(savedFd));
-    } catch (e) {
-      console.error('Failed to load local state:', e);
-    }
+    } catch (e) {}
   }, []);
 
-  // Save changes to localStorage
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(profile));
     } catch (e) {}
   }, [profile]);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY_EXERCISES, JSON.stringify(exercises));
-    } catch (e) {}
-  }, [exercises]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY_SKILLS, JSON.stringify(skills));
-    } catch (e) {}
-  }, [skills]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY_FOODS, JSON.stringify(foods));
-    } catch (e) {}
-  }, [foods]);
-
-  // Sync skill requirements completion
   useEffect(() => {
     const updatedSkills = skills.map(skill => {
       const isUnlocked = profile.unlockedSkillIds.includes(skill.id);
@@ -250,6 +271,34 @@ export const CalisthenicsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     });
     setSkills(updatedSkills);
   }, [profile.unlockedSkillIds, profile.personalRecords]);
+
+  const toggleMissionCompleted = (missionId: string) => {
+    setDailyMissions(prev => {
+      return prev.map(m => {
+        if (m.id === missionId && !m.completed) {
+          setProfile(p => ({ ...p, xp: p.xp + m.xpReward }));
+          confetti({ particleCount: 50, spread: 50, origin: { y: 0.7 } });
+          return { ...m, completed: true };
+        }
+        return m;
+      });
+    });
+  };
+
+  const saveCheckIn = (checkIn: DailyCheckIn) => {
+    let fatigue: 'low' | 'moderate' | 'high' = 'low';
+    if (checkIn.soreness === 'sore' || checkIn.energy === 'sleepy') {
+      fatigue = 'high';
+    } else if (checkIn.soreness === 'mild') {
+      fatigue = 'moderate';
+    }
+
+    setProfile(prev => ({
+      ...prev,
+      fatigueLevel: fatigue,
+      dailyCheckIn: checkIn
+    }));
+  };
 
   const toggleMealEaten = (foodId: string) => {
     setCurrentNutrition(prev => {
@@ -320,41 +369,17 @@ export const CalisthenicsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   };
 
   // Admin Actions
-  const addExercise = (newEx: Exercise) => {
-    setExercises(prev => [...prev, newEx]);
-  };
+  const addExercise = (newEx: Exercise) => setExercises(prev => [...prev, newEx]);
+  const editExercise = (updatedEx: Exercise) => setExercises(prev => prev.map(e => (e.id === updatedEx.id ? updatedEx : e)));
+  const deleteExercise = (exId: string) => setExercises(prev => prev.filter(e => e.id !== exId));
 
-  const editExercise = (updatedEx: Exercise) => {
-    setExercises(prev => prev.map(e => (e.id === updatedEx.id ? updatedEx : e)));
-  };
+  const addSkill = (newSk: SkillNode) => setSkills(prev => [...prev, newSk]);
+  const editSkill = (updatedSk: SkillNode) => setSkills(prev => prev.map(s => (s.id === updatedSk.id ? updatedSk : s)));
+  const deleteSkill = (skId: string) => setSkills(prev => prev.filter(s => s.id !== skId));
 
-  const deleteExercise = (exId: string) => {
-    setExercises(prev => prev.filter(e => e.id !== exId));
-  };
-
-  const addSkill = (newSk: SkillNode) => {
-    setSkills(prev => [...prev, newSk]);
-  };
-
-  const editSkill = (updatedSk: SkillNode) => {
-    setSkills(prev => prev.map(s => (s.id === updatedSk.id ? updatedSk : s)));
-  };
-
-  const deleteSkill = (skId: string) => {
-    setSkills(prev => prev.filter(s => s.id !== skId));
-  };
-
-  const addFood = (newFd: FoodItem) => {
-    setFoods(prev => [...prev, newFd]);
-  };
-
-  const editFood = (updatedFd: FoodItem) => {
-    setFoods(prev => prev.map(f => (f.id === updatedFd.id ? updatedFd : f)));
-  };
-
-  const deleteFood = (fdId: string) => {
-    setFoods(prev => prev.filter(f => f.id !== fdId));
-  };
+  const addFood = (newFd: FoodItem) => setFoods(prev => [...prev, newFd]);
+  const editFood = (updatedFd: FoodItem) => setFoods(prev => prev.map(f => (f.id === updatedFd.id ? updatedFd : f)));
+  const deleteFood = (fdId: string) => setFoods(prev => prev.filter(f => f.id !== fdId));
 
   const checkSkillUnlocks = (newPRs?: Record<string, PersonalRecord>) => {
     const currentPRs = newPRs || profile.personalRecords;
@@ -442,6 +467,8 @@ export const CalisthenicsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       fatigueLevel: workoutData.fatigueRating
     }));
 
+    // Auto complete main workout mission
+    toggleMissionCompleted('m_workout');
     checkSkillUnlocks(updatedPRs);
   };
 
@@ -532,10 +559,16 @@ export const CalisthenicsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         skills,
         foods,
         currentNutrition,
+        dailyMissions,
+        achievements,
+        friends,
+        challenges,
         updateAssessment,
         updateEquipment,
         completeWorkout,
         toggleMealEaten,
+        toggleMissionCompleted,
+        saveCheckIn,
         checkSkillUnlocks,
         updateFatigue,
         toggleUserRole,
@@ -559,8 +592,6 @@ export const CalisthenicsProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
 export const useCalisthenics = () => {
   const context = useContext(CalisthenicsContext);
-  if (!context) {
-    throw new Error('useCalisthenics must be used within a CalisthenicsProvider');
-  }
+  if (!context) throw new Error('useCalisthenics must be used within a CalisthenicsProvider');
   return context;
 };

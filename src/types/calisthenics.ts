@@ -26,7 +26,6 @@ export type Equipment =
   | 'bench';
 
 export type TrainingLocation = 'home' | 'gym';
-
 export type UserRole = 'user' | 'admin';
 
 export type DietPreference = 'vegetarian' | 'non_vegetarian' | 'vegan' | 'eggetarian';
@@ -58,7 +57,7 @@ export interface MealLogItem {
 }
 
 export interface DailyNutritionLog {
-  date: string; // YYYY-MM-DD
+  date: string;
   targetCalories: number;
   targetProteinG: number;
   targetCarbsG: number;
@@ -114,6 +113,52 @@ export interface SkillNode {
   benefits: string[];
 }
 
+export interface DailyMissionItem {
+  id: string;
+  title: string;
+  category: 'main' | 'strength' | 'skill' | 'nutrition' | 'recovery' | 'streak';
+  xpReward: number;
+  completed: boolean;
+  description: string;
+}
+
+export interface AchievementBadge {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  xpReward: number;
+  unlocked: boolean;
+  unlockedAt?: string;
+}
+
+export interface DailyCheckIn {
+  date: string;
+  energy: 'sleepy' | 'neutral' | 'good' | 'energetic' | 'fire';
+  soreness: 'fresh' | 'mild' | 'sore';
+  motivation: 'low' | 'neutral' | 'high' | 'fire';
+}
+
+export interface FriendUser {
+  id: string;
+  username: string;
+  name: string;
+  streak: number;
+  xp: number;
+  avatarUrl?: string;
+}
+
+export interface ConsistencyChallenge {
+  id: string;
+  friendId: string;
+  friendName: string;
+  title: string;
+  daysDuration: number;
+  myProgress: number;
+  friendProgress: number;
+  completed: boolean;
+}
+
 export interface UserAssessment {
   completed: boolean;
   age?: number;
@@ -126,13 +171,11 @@ export interface UserAssessment {
   equipment: Equipment[];
   primaryGoal: 'master_skills' | 'build_muscle' | 'build_strength' | 'fat_loss' | 'general_fitness';
   
-  // Diet Preferences
   dietPreference: DietPreference;
   cuisine: FoodCuisine;
   mealsPerDay: number;
   budget: BudgetLevel;
 
-  // Baseline Max Scores
   maxPushups: number;
   maxPullups: number;
   maxDips: number;
@@ -202,4 +245,5 @@ export interface UserProfile {
   workoutHistory: WorkoutLog[];
   nutritionHistory: DailyNutritionLog[];
   fatigueLevel: 'low' | 'moderate' | 'high';
+  dailyCheckIn?: DailyCheckIn;
 }
