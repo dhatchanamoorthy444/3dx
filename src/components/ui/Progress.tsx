@@ -97,7 +97,10 @@ const variantStrokeColors = {
   skill: 'url(#progress-gradient-skill)',
 };
 
-export const ProgressRing = forwardRef<unknown, CircularProgressProps>(
+export const ProgressRing = forwardRef<
+  SVGSVGElement,
+  CircularProgressProps
+>(
   (
     {
       value,
