@@ -40,6 +40,7 @@ interface CalisthenicsContextType {
   login: (usernameOrEmail: string, password: string) => { success: boolean; error?: string };
   logout: () => void;
   botDetected: boolean;
+  setBotDetected: (value: boolean) => void;
   
   updateAssessment: (assessment: UserAssessment) => void;
   updateEquipment: (equipment: Equipment[]) => void;
@@ -641,6 +642,7 @@ export const CalisthenicsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         login,
         logout,
         botDetected,
+        setBotDetected,
         updateAssessment,
         updateEquipment,
         completeWorkout,
