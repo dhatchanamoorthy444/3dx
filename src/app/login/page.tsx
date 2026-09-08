@@ -4,21 +4,42 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCalisthenics } from '../../context/CalisthenicsContext';
-import { Dumbbell, Lock, Mail, User, ArrowRight } from 'lucide-react';
+import { Dumbbell, Lock, Mail, ArrowRight } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { profile } = useCalisthenics();
+  const { login, isLoggedIn, botDetected } = useCalisthenics();
   const [emailOrUsername, setEmailOrUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [honeypot, setHoneypot] = useState('');
+
+  React.useEffect(() => {
+    if (isLoggedIn) {
+      router.push('/');
+    }
+  }, [isLoggedIn, router]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
+    setError('');
+
+    if (honeypot) {
+      setBotDetected(true);
       setLoading(false);
-      router.push('/');
+      return;
+    }
+
+    setTimeout(() => {
+      const result = login(emailOrUsername, password);
+      if (result.success) {
+        router.push('/');
+      } else {
+        setError(result.error || 'Login failed.');
+        setLoading(false);
+      }
     }, 500);
   };
 
@@ -35,6 +56,17 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
+          {botDetected && (
+            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold">
+              Suspicious activity detected. Please try again.
+            </div>
+          )}
+          {error && (
+            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold">
+              {error}
+            </div>
+          )}
+
           <div>
             <label className="block text-xs font-semibold text-slate-400 mb-1">Username or Email</label>
             <div className="relative">
@@ -70,6 +102,16 @@ export default function LoginPage() {
             </div>
           </div>
 
+          <input
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+            value={honeypot}
+            onChange={e => setHoneypot(e.target.value)}
+            className="hidden"
+            aria-hidden="true"
+          />
+
           <button
             type="submit"
             disabled={loading}
@@ -81,7 +123,7 @@ export default function LoginPage() {
         </form>
 
         <div className="text-center text-xs text-slate-400 pt-2 border-t border-slate-800">
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <Link href="/register" className="text-amber-400 font-bold hover:underline">
             Create Account
           </Link>

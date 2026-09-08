@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useCalisthenics } from '../../context/CalisthenicsContext';
-import { Bot, Send, Sparkles, User, Utensils, Dumbbell } from 'lucide-react';
+import { Bot, Send, User } from 'lucide-react';
 
 interface ChatMessage {
   sender: 'user' | 'ai';

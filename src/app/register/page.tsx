@@ -3,25 +3,41 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Dumbbell, Lock, Mail, User, ArrowRight } from 'lucide-react';
+import { useCalisthenics } from '../../context/CalisthenicsContext';
+import { Dumbbell, ArrowRight } from 'lucide-react';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { login, botDetected, setBotDetected } = useCalisthenics();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [honeypot, setHoneypot] = useState('');
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
-    router.push('/assessment');
+
+    if (honeypot) {
+      setBotDetected(true);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      return;
+    }
+
+    const result = login(username || email, password);
+    if (result.success) {
+      router.push('/assessment');
+    }
   };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
       <div className="bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-8 space-y-6 shadow-2xl">
-        
+
         <div className="text-center space-y-2">
           <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 w-fit mx-auto">
             <Dumbbell className="w-8 h-8" />
@@ -29,6 +45,12 @@ export default function RegisterPage() {
           <h1 className="text-2xl font-black text-white">Join CaliRoadmap</h1>
           <p className="text-xs text-slate-400">Start your bodyweight skill progression game</p>
         </div>
+
+        {botDetected && (
+          <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold">
+            Suspicious activity detected. Please try again.
+          </div>
+        )}
 
         <form onSubmit={handleRegister} className="space-y-3">
           <div>
@@ -90,6 +112,16 @@ export default function RegisterPage() {
               className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm focus:border-amber-500 focus:outline-none"
             />
           </div>
+
+          <input
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+            value={honeypot}
+            onChange={e => setHoneypot(e.target.value)}
+            className="hidden"
+            aria-hidden="true"
+          />
 
           <button
             type="submit"

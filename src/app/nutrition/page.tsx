@@ -3,20 +3,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useCalisthenics } from '../../context/CalisthenicsContext';
-import { FoodItem, DietPreference } from '../../types/calisthenics';
-import { 
-  Utensils, 
-  Check, 
-  Plus, 
-  Search, 
-  Flame, 
-  Apple, 
-  Bot, 
-  Sparkles, 
-  CheckCircle2, 
-  ChevronRight,
-  ShieldAlert
-} from 'lucide-react';
+import { DietPreference } from '../../types/calisthenics';
+import { Utensils, Check, Search, Flame, Bot, ShieldAlert } from 'lucide-react';
 
 export default function NutritionPage() {
   const { currentNutrition, toggleMealEaten, profile, foods } = useCalisthenics();
@@ -70,7 +58,7 @@ export default function NutritionPage() {
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            Today's Fuel Log
+            Today&apos;s Fuel Log
           </button>
           <button
             onClick={() => setActiveTab('database')}
@@ -213,7 +201,7 @@ export default function NutritionPage() {
 
               <select
                 value={dietFilter}
-                onChange={e => setDietFilter(e.target.value as any)}
+                onChange={e => setDietFilter(e.target.value as DietPreference | 'all')}
                 className="bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-300 font-bold focus:border-amber-500 focus:outline-none"
               >
                 <option value="all">All Diet Types</option>
@@ -258,3 +246,5 @@ export default function NutritionPage() {
     </div>
   );
 }
+
+

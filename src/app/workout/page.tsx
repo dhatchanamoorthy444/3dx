@@ -6,17 +6,12 @@ import { useCalisthenics } from '../../context/CalisthenicsContext';
 import { WorkoutExerciseLog, WorkoutExerciseLogSet } from '../../types/calisthenics';
 import { EXERCISES_DATABASE } from '../../data/exercises';
 import { 
-  Play, 
   CheckCircle2, 
-  RotateCcw, 
   Plus, 
   Minus, 
   Clock, 
   Trophy, 
-  Sparkles, 
   Check, 
-  Flame, 
-  AlertTriangle,
   Info,
   ChevronRight,
   Zap
@@ -25,7 +20,7 @@ import confetti from 'canvas-confetti';
 
 export default function WorkoutPage() {
   const router = useRouter();
-  const { generateTodayWorkout, completeWorkout, profile } = useCalisthenics();
+  const { generateTodayWorkout, completeWorkout } = useCalisthenics();
 
   const workoutPlan = generateTodayWorkout();
 
@@ -52,22 +47,24 @@ export default function WorkoutPage() {
   // Rest Timer State
   const [timerSeconds, setTimerSeconds] = useState(90);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const [initialTimer, setInitialTimer] = useState(90);
 
   useEffect(() => {
-    let interval: any = null;
+    let interval: NodeJS.Timeout | null = null;
     if (isTimerRunning && timerSeconds > 0) {
       interval = setInterval(() => {
-        setTimerSeconds(s => s - 1);
+        setTimerSeconds(s => {
+          const next = s - 1;
+          if (next <= 0) {
+            setIsTimerRunning(false);
+          }
+          return Math.max(0, next);
+        });
       }, 1000);
-    } else if (timerSeconds === 0 && isTimerRunning) {
-      setIsTimerRunning(false);
     }
-    return () => clearInterval(interval);
+    return () => { if (interval) clearInterval(interval); };
   }, [isTimerRunning, timerSeconds]);
 
   const startRestTimer = (secs: number = 90) => {
-    setInitialTimer(secs);
     setTimerSeconds(secs);
     setIsTimerRunning(true);
   };

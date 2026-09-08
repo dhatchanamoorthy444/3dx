@@ -1,11 +1,11 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { 
   UserProfile, 
   UserAssessment, 
   WorkoutLog, 
-  PersonalRecord, 
+  PersonalRecord,
   Equipment,
   LevelNumber,
   SkillNode,
@@ -19,7 +19,7 @@ import {
   FriendUser,
   ConsistencyChallenge
 } from '../types/calisthenics';
-import { EXERCISES_DATABASE as INITIAL_EXERCISES, LEVEL_DEFINITIONS } from '../data/exercises';
+import { EXERCISES_DATABASE as INITIAL_EXERCISES } from '../data/exercises';
 import { SKILL_TREE as INITIAL_SKILLS } from '../data/skills';
 import { INITIAL_FOODS_DATABASE } from '../data/foods';
 import confetti from 'canvas-confetti';
@@ -34,6 +34,12 @@ interface CalisthenicsContextType {
   achievements: AchievementBadge[];
   friends: FriendUser[];
   challenges: ConsistencyChallenge[];
+  
+  isLoggedIn: boolean;
+  currentUser: { username: string; email: string; role: string } | null;
+  login: (usernameOrEmail: string, password: string) => { success: boolean; error?: string };
+  logout: () => void;
+  botDetected: boolean;
   
   updateAssessment: (assessment: UserAssessment) => void;
   updateEquipment: (equipment: Equipment[]) => void;
@@ -195,14 +201,61 @@ export function calculateLevelsFromAssessment(assessment: UserAssessment) {
 }
 
 export const CalisthenicsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
-  const [exercises, setExercises] = useState<Exercise[]>(INITIAL_EXERCISES);
-  const [skills, setSkills] = useState<SkillNode[]>(INITIAL_SKILLS);
-  const [foods, setFoods] = useState<FoodItem[]>(INITIAL_FOODS_DATABASE);
+  const [profile, setProfile] = useState<UserProfile>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedProf = localStorage.getItem(STORAGE_KEY_PROFILE);
+        if (savedProf) return JSON.parse(savedProf);
+      } catch {}
+    }
+    return DEFAULT_PROFILE;
+  });
+  const [exercises, setExercises] = useState<Exercise[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedEx = localStorage.getItem(STORAGE_KEY_EXERCISES);
+        if (savedEx) return JSON.parse(savedEx);
+      } catch {}
+    }
+    return INITIAL_EXERCISES;
+  });
+  const [skills, setSkills] = useState<SkillNode[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedSk = localStorage.getItem(STORAGE_KEY_SKILLS);
+        if (savedSk) return JSON.parse(savedSk);
+      } catch {}
+    }
+    return INITIAL_SKILLS;
+  });
+  const [foods, setFoods] = useState<FoodItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedFd = localStorage.getItem(STORAGE_KEY_FOODS);
+        if (savedFd) return JSON.parse(savedFd);
+      } catch {}
+    }
+    return INITIAL_FOODS_DATABASE;
+  });
   const [dailyMissions, setDailyMissions] = useState<DailyMissionItem[]>(INITIAL_MISSIONS);
-  const [achievements, setAchievements] = useState<AchievementBadge[]>(INITIAL_ACHIEVEMENTS);
-  const [friends, setFriends] = useState<FriendUser[]>(INITIAL_FRIENDS);
-  const [challenges, setChallenges] = useState<ConsistencyChallenge[]>(INITIAL_CHALLENGES);
+  const [achievements] = useState<AchievementBadge[]>(INITIAL_ACHIEVEMENTS);
+  const [friends, _setFriends] = useState<FriendUser[]>(INITIAL_FRIENDS);
+  const [challenges, _setChallenges] = useState<ConsistencyChallenge[]>(INITIAL_CHALLENGES);
+
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('cali_is_logged_in') === 'true';
+    }
+    return false;
+  });
+  const [currentUser, setCurrentUser] = useState<{ username: string; email: string; role: string } | null>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('cali_current_user');
+      if (saved) return JSON.parse(saved);
+    }
+    return null;
+  });
+  const [botDetected, setBotDetected] = useState(false);
 
   const [currentNutrition, setCurrentNutrition] = useState<DailyNutritionLog>(() => {
     const todayStr = new Date().toISOString().split('T')[0];
@@ -233,28 +286,12 @@ export const CalisthenicsProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   useEffect(() => {
     try {
-      const savedProf = localStorage.getItem(STORAGE_KEY_PROFILE);
-      if (savedProf) setProfile(JSON.parse(savedProf));
-
-      const savedEx = localStorage.getItem(STORAGE_KEY_EXERCISES);
-      if (savedEx) setExercises(JSON.parse(savedEx));
-
-      const savedSk = localStorage.getItem(STORAGE_KEY_SKILLS);
-      if (savedSk) setSkills(JSON.parse(savedSk));
-
-      const savedFd = localStorage.getItem(STORAGE_KEY_FOODS);
-      if (savedFd) setFoods(JSON.parse(savedFd));
-    } catch (e) {}
-  }, []);
-
-  useEffect(() => {
-    try {
       localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(profile));
-    } catch (e) {}
+    } catch {}
   }, [profile]);
 
-  useEffect(() => {
-    const updatedSkills = skills.map(skill => {
+  const computedSkills = useMemo(() => {
+    return skills.map(skill => {
       const isUnlocked = profile.unlockedSkillIds.includes(skill.id);
       let reqMetCount = 0;
       skill.exerciseRequirements.forEach(req => {
@@ -269,8 +306,7 @@ export const CalisthenicsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         progressPercent: isUnlocked ? 100 : percent
       };
     });
-    setSkills(updatedSkills);
-  }, [profile.unlockedSkillIds, profile.personalRecords]);
+  }, [skills, profile.unlockedSkillIds, profile.personalRecords]);
 
   const toggleMissionCompleted = (missionId: string) => {
     setDailyMissions(prev => {
@@ -358,6 +394,43 @@ export const CalisthenicsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       ...prev,
       role: prev.role === 'admin' ? 'user' : 'admin'
     }));
+  };
+
+  const login = (usernameOrEmail: string, password: string) => {
+    setBotDetected(false);
+    
+    const trimmed = usernameOrEmail.trim().toLowerCase();
+    const pw = password.trim();
+    
+    if (!trimmed || !pw) {
+      return { success: false, error: 'Please enter both username/email and password.' };
+    }
+
+    const demoUsers = [
+      { username: 'admin', email: 'admin@caliroadmap.com', password: 'admin', role: 'admin' as const },
+      { username: 'athlete123', email: 'athlete@caliroadmap.com', password: 'password', role: 'user' as const }
+    ];
+
+    const user = demoUsers.find(u => 
+      (u.username === trimmed || u.email === trimmed) && u.password === pw
+    );
+
+    if (user) {
+      setIsLoggedIn(true);
+      setCurrentUser({ username: user.username, email: user.email, role: user.role });
+      localStorage.setItem('cali_is_logged_in', 'true');
+      localStorage.setItem('cali_current_user', JSON.stringify({ username: user.username, email: user.email, role: user.role }));
+      return { success: true };
+    }
+
+    return { success: false, error: 'Invalid username or password.' };
+  };
+
+  const logout = () => {
+    setIsLoggedIn(false);
+    setCurrentUser(null);
+    localStorage.removeItem('cali_is_logged_in');
+    localStorage.removeItem('cali_current_user');
   };
 
   const resetAllData = () => {
@@ -556,13 +629,18 @@ export const CalisthenicsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       value={{
         profile,
         exercises,
-        skills,
+        skills: computedSkills,
         foods,
         currentNutrition,
         dailyMissions,
         achievements,
         friends,
         challenges,
+        isLoggedIn,
+        currentUser,
+        login,
+        logout,
+        botDetected,
         updateAssessment,
         updateEquipment,
         completeWorkout,

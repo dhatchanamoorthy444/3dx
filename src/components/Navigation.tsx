@@ -18,8 +18,7 @@ import {
   Award,
   Zap,
   Utensils,
-  ShieldCheck,
-  UserCheck
+  ShieldCheck
 } from 'lucide-react';
 
 export const Navigation: React.FC = () => {

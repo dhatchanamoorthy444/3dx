@@ -4,20 +4,7 @@ import React, { useState } from 'react';
 import { useCalisthenics } from '../../context/CalisthenicsContext';
 import { SkillNode, LevelCategory } from '../../types/calisthenics';
 import { EXERCISES_DATABASE } from '../../data/exercises';
-import { 
-  Lock, 
-  Unlock, 
-  CheckCircle, 
-  AlertCircle, 
-  GitFork, 
-  X, 
-  Sparkles, 
-  Zap, 
-  Shield, 
-  Award,
-  ChevronRight,
-  Flame
-} from 'lucide-react';
+import { Lock, Unlock, CheckCircle, AlertCircle, GitFork, X, ChevronRight } from 'lucide-react';
 
 export default function SkillTreePage() {
   const { skills, profile, checkSkillUnlocks } = useCalisthenics();
@@ -270,3 +257,4 @@ export default function SkillTreePage() {
     </div>
   );
 }
+

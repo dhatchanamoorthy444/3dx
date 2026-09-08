@@ -8,20 +8,8 @@ import { DailyCheckIn } from '../types/calisthenics';
 import { 
   Flame, 
   Award, 
-  Dumbbell, 
-  ChevronRight, 
   Zap, 
   Target, 
-  Lock, 
-  Unlock, 
-  CheckCircle2, 
-  TrendingUp, 
-  Bot,
-  Compass,
-  ArrowUpRight,
-  Smile,
-  Meh,
-  Frown,
   Sparkles,
   Check
 } from 'lucide-react';
@@ -114,7 +102,7 @@ export default function DashboardPage() {
               You are 3 pull-ups away from unlocking your {nextSkillGoal.name} progression.
             </h2>
             <p className="text-xs sm:text-sm font-semibold opacity-90">
-              Complete today's {todayWorkout.category} routine to earn +150 XP and progress your skill requirements.
+              Complete today&apos;s {todayWorkout.category} routine to earn +150 XP and progress your skill requirements.
             </p>
           </div>
 

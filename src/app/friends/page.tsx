@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useCalisthenics } from '../../context/CalisthenicsContext';
-import { Users, Flame, Award, Trophy, UserPlus, Shield, Swords, CheckCircle2 } from 'lucide-react';
+import { Users, Flame, Award, UserPlus, Swords } from 'lucide-react';
 
 export default function FriendsPage() {
   const { friends, challenges } = useCalisthenics();

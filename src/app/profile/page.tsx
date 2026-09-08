@@ -2,12 +2,10 @@
 
 import React, { useState } from 'react';
 import { useCalisthenics } from '../../context/CalisthenicsContext';
-import { User, ShieldCheck, Trophy, Award, Flame, Camera, Lock, Eye, Edit2, Check } from 'lucide-react';
+import { Camera, Lock, Eye, Flame, Award } from 'lucide-react';
 
 export default function ProfilePage() {
   const { profile } = useCalisthenics();
-  const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState(profile.name);
   const [privatePhotos, setPrivatePhotos] = useState(true);
 
   return (

@@ -2,25 +2,11 @@
 
 import React, { useState } from 'react';
 import { EXERCISES_DATABASE, LEVEL_DEFINITIONS } from '../../data/exercises';
-import { Exercise, LevelCategory, Equipment } from '../../types/calisthenics';
-import { useCalisthenics } from '../../context/CalisthenicsContext';
-import { 
-  Search, 
-  Filter, 
-  BookOpen, 
-  X, 
-  ChevronRight, 
-  ChevronLeft, 
-  AlertTriangle, 
-  CheckCircle2, 
-  Dumbbell, 
-  ShieldAlert,
-  ArrowRight
-} from 'lucide-react';
+import { Exercise, LevelCategory } from '../../types/calisthenics';
+import { Search, BookOpen, X, ChevronRight, AlertTriangle, ShieldAlert, ArrowRight } from 'lucide-react';
 
 export default function ExercisesPage() {
-  const { profile } = useCalisthenics();
-  const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<LevelCategory | 'all'>('all');
   const [levelFilter, setLevelFilter] = useState<number | 'all'>('all');
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
@@ -264,3 +250,7 @@ export default function ExercisesPage() {
     </div>
   );
 }
+
+
+
+

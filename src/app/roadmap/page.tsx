@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { LEVEL_DEFINITIONS, EXERCISES_DATABASE } from '../../data/exercises';
 import { useCalisthenics } from '../../context/CalisthenicsContext';
-import { Map, CheckCircle2, Lock, Unlock, ChevronRight, Award, Flame } from 'lucide-react';
+import { Map, CheckCircle2, Lock, ChevronRight } from 'lucide-react';
 
 export default function RoadmapPage() {
   const { profile } = useCalisthenics();
@@ -147,3 +147,4 @@ export default function RoadmapPage() {
     </div>
   );
 }
+

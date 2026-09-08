@@ -3,24 +3,9 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCalisthenics, calculateLevelsFromAssessment } from '../../context/CalisthenicsContext';
-import { UserAssessment, Equipment, TrainingLocation, DietPreference, FoodCuisine } from '../../types/calisthenics';
+import { UserAssessment, Equipment, DietPreference, FoodCuisine } from '../../types/calisthenics';
 import { LEVEL_DEFINITIONS } from '../../data/exercises';
-import { 
-  CheckCircle2, 
-  ChevronRight, 
-  ChevronLeft, 
-  Dumbbell, 
-  Target, 
-  Clock, 
-  Calendar, 
-  ShieldCheck, 
-  Sparkles,
-  Flame,
-  Award,
-  Home,
-  Building2,
-  Utensils
-} from 'lucide-react';
+import { CheckCircle2, ChevronRight, ChevronLeft, Sparkles, Flame, Award, Home, Building2, Utensils } from 'lucide-react';
 
 export default function AssessmentPage() {
   const router = useRouter();
@@ -347,3 +332,7 @@ export default function AssessmentPage() {
     </div>
   );
 }
+
+
+
+

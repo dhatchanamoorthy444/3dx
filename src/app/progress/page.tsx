@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useCalisthenics } from '../../context/CalisthenicsContext';
-import { TrendingUp, Trophy, Calendar, Flame, Award } from 'lucide-react';
+import { TrendingUp, Trophy } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar } from 'recharts';
 
 export default function ProgressPage() {

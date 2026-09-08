@@ -2,19 +2,17 @@
 
 import React, { useState } from 'react';
 import { useCalisthenics } from '../../context/CalisthenicsContext';
-import { Exercise, SkillNode, FoodItem, LevelCategory, Equipment, DietPreference } from '../../types/calisthenics';
+import { Exercise, FoodItem } from '../../types/calisthenics';
 import { 
   ShieldCheck, 
   Plus, 
   Trash2, 
-  Edit3, 
   Lock, 
   Users, 
   BookOpen, 
   GitFork, 
   Utensils, 
   AlertTriangle,
-  CheckCircle2,
   X
 } from 'lucide-react';
 
@@ -27,8 +25,6 @@ export default function AdminPage() {
     toggleUserRole,
     addExercise,
     deleteExercise,
-    addSkill,
-    deleteSkill,
     addFood,
     deleteFood
   } = useCalisthenics();
@@ -293,7 +289,7 @@ export default function AdminPage() {
                   <label className="text-xs text-slate-400">Category</label>
                   <select
                     value={newEx.category}
-                    onChange={e => setNewEx({ ...newEx, category: e.target.value as any })}
+                    onChange={e => setNewEx({ ...newEx, category: e.target.value as Exercise['category'] })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs"
                   >
                     <option value="push">Push</option>
@@ -309,7 +305,7 @@ export default function AdminPage() {
                   <input
                     type="number"
                     value={newEx.level}
-                    onChange={e => setNewEx({ ...newEx, level: Number(e.target.value) as any })}
+                    onChange={e => setNewEx({ ...newEx, level: Number(e.target.value) as Exercise['level'] })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs"
                   />
                 </div>
