@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, createContext, useContext } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { getSupabaseClient } from '@/lib/supabaseClient';
 
 export interface UserProfile {
   id: string;
@@ -40,9 +40,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Check for existing session
     const initAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await getSupabaseClient().auth.getSession();
         if (session?.user) {
-          const { data: profile } = await supabase
+          const { data: profile } = await getSupabaseClient()
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
@@ -67,9 +67,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initAuth();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = getSupabaseClient().auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
-        const { data: profile } = await supabase
+        const { data: profile } = await getSupabaseClient()
           .from('profiles')
           .select('*')
           .eq('id', session.user.id)
@@ -98,21 +98,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
       
       // Try email login first
-      let { data, error } = await supabase.auth.signInWithPassword({
+      let { data, error } = await getSupabaseClient().auth.signInWithPassword({
         email: emailOrUsername,
         password
       });
 
       // If email fails, try username lookup
       if (error && !emailOrUsername.includes('@')) {
-        const { data: profile, error: profileError } = await supabase
+        const { data: profile, error: profileError } = await getSupabaseClient()
           .from('profiles')
           .select('email')
           .eq('username', emailOrUsername)
           .single();
 
         if (profile && !profileError) {
-          ({ data, error } = await supabase.auth.signInWithPassword({
+          ({ data, error } = await getSupabaseClient().auth.signInWithPassword({
             email: profile.email,
             password
           }));
@@ -135,7 +135,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error } = await getSupabaseClient().auth.signUp({
         email,
         password,
         options: {
@@ -160,7 +160,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
-      await supabase.auth.signOut();
+      await getSupabaseClient().auth.signOut();
       setUser(null);
     } catch (error) {
       console.error('Sign out error:', error);
@@ -173,7 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, error: 'Not authenticated' };
       }
 
-      const { error } = await supabase
+      const { error } = await getSupabaseClient()
         .from('workout_logs')
         .upsert({
           user_id: user.id,
@@ -197,7 +197,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       if (!user) return null;
 
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('workout_logs')
         .select('*')
         .eq('user_id', user.id)
@@ -215,7 +215,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       if (!user) return [];
 
-      let query = supabase
+      let query = getSupabaseClient()
         .from('workout_logs')
         .select('*')
         .eq('user_id', user.id)

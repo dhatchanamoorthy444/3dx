@@ -18,13 +18,13 @@
   --surface-secondary: hsl(240 10% 12% / 0.8);
   --surface-overlay: hsl(240 10% 15% / 0.9);
   
-  /* Accent colors */
-  --accent-primary: hsl(48 100% 50%);
-  --accent-primary-hover: hsl(48 100% 55%);
-  --accent-primary-active: hsl(48 100% 45%);
-  --accent-secondary: hsl(262 83% 58%);
+  /* Accent colors - Neon Volt for high energy */
+  --accent-primary: hsl(84 100% 60%);
+  --accent-primary-hover: hsl(84 100% 65%);
+  --accent-primary-active: hsl(84 100% 55%);
+  --accent-secondary: hsl(200 100% 50%);
   --accent-tertiary: hsl(142 76% 36%);
-  --accent-warning: hsl(14 100% 57%);
+  --accent-warning: hsl(38 100% 50%);
   
   /* Text colors */
   --text-primary: hsl(0 0% 98%);
