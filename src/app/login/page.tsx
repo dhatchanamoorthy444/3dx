@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCalisthenics } from '../../context/CalisthenicsContext';
 import { useAuth } from '../../context/AuthContext';
+import { WorkoutMascot } from '../../components/WorkoutMascot';
 import { Dumbbell, Lock, Mail, ArrowRight } from 'lucide-react';
 
 export default function LoginPage() {
@@ -52,8 +53,8 @@ export default function LoginPage() {
       <div className="bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-8 space-y-6 shadow-2xl">
         
         <div className="text-center space-y-2">
-          <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 w-fit mx-auto">
-            <Dumbbell className="w-8 h-8" />
+          <div className="w-20 h-20 mx-auto">
+            <WorkoutMascot exercise="pushup" size="lg" />
           </div>
           <h1 className="text-2xl font-black text-white">
             {isSignUp ? 'Join CaliGym' : 'Welcome to CaliGym'}

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCalisthenics } from '../context/CalisthenicsContext';
 import { Logo } from './Logo';
+import { WorkoutMascot } from './WorkoutMascot';
 import { ThemeToggle } from './ThemeToggle';
 import { 
   Dumbbell, 
@@ -51,7 +52,11 @@ export const Navigation: React.FC = () => {
           {/* Logo & Level Badge */}
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-2 group">
-              <Logo showText={true} size="md" />
+              <WorkoutMascot exercise="pushup" size="sm" />
+              <span className="font-extrabold text-xl tracking-tight hidden sm:block">
+                <span className="text-white">CALI</span>
+                <span className="text-amber-500">GYM</span>
+              </span>
             </Link>
 
             <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs font-semibold">

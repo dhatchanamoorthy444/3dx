@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useCalisthenics } from '../context/CalisthenicsContext';
 import { LEVEL_DEFINITIONS } from '../data/exercises';
 import { DailyCheckIn } from '../types/calisthenics';
+import { WorkoutMascot } from '../components/WorkoutMascot';
 import { 
   Flame, 
   Award, 
@@ -85,6 +86,10 @@ export default function DashboardPage() {
                   <span>{profile.xp}</span>
                 </div>
                 <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-400 mt-1">Total XP</div>
+              </div>
+
+              <div className="hidden xl:block">
+                <WorkoutMascot exercise="pushup" size="md" />
               </div>
             </div>
           </div>
