@@ -38,8 +38,10 @@ export default function LoginPage() {
     if (isSignUp) {
       result = await signUp(emailOrUsername, password, username || emailOrUsername.split('@')[0]);
     } else {
-      result = await login(emailOrUsername, password, role);
+      // Try demo login first
+      result = login(emailOrUsername, password, role);
       if (!result.success) {
+        // Fall back to Supabase auth
         result = await signIn(emailOrUsername, password);
       }
     }
@@ -67,7 +69,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Role Selection Tabs */}
+        {/* Role Selection Tabs - Only for login */}
         {!isSignUp && (
           <div className="grid grid-cols-2 gap-3">
             <button
@@ -76,7 +78,7 @@ export default function LoginPage() {
               className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border text-sm font-bold transition-all ${
                 role === 'user'
                   ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                  : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                  : 'bg-slate-950 border border-slate-800 text-slate-400 hover:text-white'
               }`}
             >
               <UserIcon className="w-4 h-4" />
@@ -88,7 +90,7 @@ export default function LoginPage() {
               className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border text-sm font-bold transition-all ${
                 role === 'admin'
                   ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
-                  : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                  : 'bg-slate-950 border border-slate-800 text-slate-400 hover:text-white'
               }`}
             >
               <Shield className="w-4 h-4" />
