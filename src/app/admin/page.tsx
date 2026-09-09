@@ -12,7 +12,6 @@ import {
   BookOpen, 
   GitFork, 
   Utensils, 
-  AlertTriangle,
   X
 } from 'lucide-react';
 
@@ -143,15 +142,6 @@ export default function AdminPage() {
             <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
               Role: ADMIN ACTIVE
             </span>
-          </div>
-        </div>
-
-        {/* Security Warning Banner */}
-        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-          <div>
-            <span className="font-extrabold uppercase block text-amber-400">Production Security Notice</span>
-            Do not deploy hardcoded admin passwords in production environments. Passwords must be securely hashed with Argon2/bcrypt and changed immediately after initial setup.
           </div>
         </div>
 
