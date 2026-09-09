@@ -4,14 +4,17 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCalisthenics } from '../../context/CalisthenicsContext';
+import { useAuth } from '../../context/AuthContext';
 import { Dumbbell, Lock, Mail, ArrowRight } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
   const { login, isLoggedIn, botDetected, setBotDetected } = useCalisthenics();
+  const { signIn, signUp, loading } = useAuth();
+  const [isSignUp, setIsSignUp] = useState(false);
   const [emailOrUsername, setEmailOrUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [username, setUsername] = useState('');
   const [error, setError] = useState('');
   const [honeypot, setHoneypot] = useState('');
 
@@ -21,26 +24,27 @@ export default function LoginPage() {
     }
   }, [isLoggedIn, router]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
 
     if (honeypot) {
       setBotDetected(true);
-      setLoading(false);
       return;
     }
 
-    setTimeout(() => {
-      const result = login(emailOrUsername, password);
-      if (result.success) {
-        router.push('/');
-      } else {
-        setError(result.error || 'Login failed.');
-        setLoading(false);
-      }
-    }, 500);
+    let result;
+    if (isSignUp) {
+      result = await signUp(emailOrUsername, password, username || emailOrUsername.split('@')[0]);
+    } else {
+      result = await signIn(emailOrUsername, password);
+    }
+
+    if (result.success) {
+      router.push('/');
+    } else {
+      setError(result.error || 'Authentication failed.');
+    }
   };
 
   return (
@@ -51,28 +55,34 @@ export default function LoginPage() {
           <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 w-fit mx-auto">
             <Dumbbell className="w-8 h-8" />
           </div>
-          <h1 className="text-2xl font-black text-white">Welcome to CaliGym</h1>
-          <p className="text-xs text-slate-400">Log in with your username or email</p>
+          <h1 className="text-2xl font-black text-white">
+            {isSignUp ? 'Join CaliGym' : 'Welcome to CaliGym'}
+          </h1>
+          <p className="text-xs text-slate-400">
+            {isSignUp ? 'Create your account' : 'Log in with your username or email'}
+          </p>
         </div>
 
         {/* Demo Credentials */}
-        <div className="bg-slate-950/50 border border-slate-800 rounded-xl p-4 space-y-3">
-          <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 text-center">Demo Credentials</p>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-3 space-y-1">
-              <p className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Admin</p>
-              <p className="text-[11px] font-mono text-slate-300">admin / admin</p>
-              <p className="text-[10px] text-slate-500">admin@caligym.com</p>
-            </div>
-            <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-3 space-y-1">
-              <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">User</p>
-              <p className="text-[11px] font-mono text-slate-300">athlete123 / password</p>
-              <p className="text-[10px] text-slate-500">athlete@caligym.com</p>
+        {!isSignUp && (
+          <div className="bg-slate-950/50 border border-slate-800 rounded-xl p-4 space-y-3">
+            <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 text-center">Demo Credentials</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-3 space-y-1">
+                <p className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Admin</p>
+                <p className="text-[11px] font-mono text-slate-300">admin / admin</p>
+                <p className="text-[10px] text-slate-500">admin@caligym.com</p>
+              </div>
+              <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-3 space-y-1">
+                <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">User</p>
+                <p className="text-[11px] font-mono text-slate-300">athlete123 / password</p>
+                <p className="text-[10px] text-slate-500">athlete@caligym.com</p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {botDetected && (
             <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold">
               Suspicious activity detected. Please try again.
@@ -84,14 +94,30 @@ export default function LoginPage() {
             </div>
           )}
 
+          {isSignUp && (
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 mb-1">Username</label>
+              <div className="relative">
+                <input
+                  type="text"
+                  required
+                  placeholder="Choose a username"
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-4 pr-4 py-2.5 text-sm focus:border-amber-500 focus:outline-none"
+                />
+              </div>
+            </div>
+          )}
+
           <div>
-            <label className="block text-xs font-semibold text-slate-400 mb-1">Username or Email</label>
+            <label className="block text-xs font-semibold text-slate-400 mb-1">Email or Username</label>
             <div className="relative">
               <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
               <input
                 type="text"
                 required
-                placeholder="athlete123 or athlete@email.com"
+                placeholder={isSignUp ? "you@example.com" : "athlete123 or athlete@email.com"}
                 value={emailOrUsername}
                 onChange={e => setEmailOrUsername(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:border-amber-500 focus:outline-none"
@@ -102,9 +128,11 @@ export default function LoginPage() {
           <div>
             <div className="flex justify-between items-center mb-1">
               <label className="block text-xs font-semibold text-slate-400">Password</label>
-              <Link href="/forgot-password" className="text-xs text-amber-400 hover:underline font-semibold">
-                Forgot password?
-              </Link>
+              {!isSignUp && (
+                <Link href="/forgot-password" className="text-xs text-amber-400 hover:underline font-semibold">
+                  Forgot password?
+                </Link>
+              )}
             </div>
             <div className="relative">
               <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
@@ -132,18 +160,24 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-sm hover:opacity-90 transition-opacity shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2"
+            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-sm hover:opacity-90 transition-opacity shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span>{loading ? 'Logging in...' : 'Sign In'}</span>
+            <span>{loading ? 'Please wait...' : (isSignUp ? 'Create Account' : 'Sign In')}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
 
         <div className="text-center text-xs text-slate-400 pt-2 border-t border-slate-800">
-          Don&apos;t have an account?{' '}
-          <Link href="/register" className="text-amber-400 font-bold hover:underline">
-            Create Account
-          </Link>
+          {isSignUp ? 'Already have an account? ' : "Don't have an account? "}
+          <button
+            onClick={() => {
+              setIsSignUp(!isSignUp);
+              setError('');
+            }}
+            className="text-amber-400 font-bold hover:underline"
+          >
+            {isSignUp ? 'Sign In' : 'Create Account'}
+          </button>
         </div>
 
       </div>

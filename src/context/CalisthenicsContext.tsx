@@ -22,6 +22,7 @@ import {
 import { EXERCISES_DATABASE as INITIAL_EXERCISES } from '../data/exercises';
 import { SKILL_TREE as INITIAL_SKILLS } from '../data/skills';
 import { INITIAL_FOODS_DATABASE } from '../data/foods';
+import { useAuth } from './AuthContext';
 import confetti from 'canvas-confetti';
 
 interface CalisthenicsContextType {
@@ -202,6 +203,7 @@ export function calculateLevelsFromAssessment(assessment: UserAssessment) {
 }
 
 export const CalisthenicsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, saveWorkout } = useAuth();
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
   const [exercises, setExercises] = useState<Exercise[]>(INITIAL_EXERCISES);
   const [skills, setSkills] = useState<SkillNode[]>(INITIAL_SKILLS);
@@ -528,6 +530,16 @@ export const CalisthenicsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     // Auto complete main workout mission
     toggleMissionCompleted('m_workout');
     checkSkillUnlocks(updatedPRs);
+
+    // Save to Supabase if user is logged in
+    if (user) {
+      saveWorkout(todayStr, {
+        ...workoutData,
+        id: newLog.id,
+        xpEarned: totalXP,
+        streak: newStreak
+      }).catch(err => console.error('Failed to save workout to Supabase:', err));
+    }
   };
 
   const generateTodayWorkout = () => {

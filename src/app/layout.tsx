@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { CalisthenicsProvider } from "../context/CalisthenicsContext";
+import { AuthProvider } from "../context/AuthContext";
 import { Navigation } from "../components/Navigation";
 
 const geistSans = Geist({
@@ -30,10 +31,12 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-slate-950 text-slate-100 font-sans">
-        <CalisthenicsProvider>
-          <Navigation />
-          <main className="flex-1">{children}</main>
-        </CalisthenicsProvider>
+        <AuthProvider>
+          <CalisthenicsProvider>
+            <Navigation />
+            <main className="flex-1">{children}</main>
+          </CalisthenicsProvider>
+        </AuthProvider>
       </body>
     </html>
   );
