@@ -55,6 +55,23 @@ export default function LoginPage() {
           <p className="text-xs text-slate-400">Log in with your username or email</p>
         </div>
 
+        {/* Demo Credentials */}
+        <div className="bg-slate-950/50 border border-slate-800 rounded-xl p-4 space-y-3">
+          <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 text-center">Demo Credentials</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-3 space-y-1">
+              <p className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Admin</p>
+              <p className="text-[11px] font-mono text-slate-300">admin / admin</p>
+              <p className="text-[10px] text-slate-500">admin@caligym.com</p>
+            </div>
+            <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-3 space-y-1">
+              <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">User</p>
+              <p className="text-[11px] font-mono text-slate-300">athlete123 / password</p>
+              <p className="text-[10px] text-slate-500">athlete@caligym.com</p>
+            </div>
+          </div>
+        </div>
+
         <form onSubmit={handleLogin} className="space-y-4">
           {botDetected && (
             <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold">

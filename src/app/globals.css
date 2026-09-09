@@ -66,6 +66,30 @@
   --z-tooltip: 1070;
 }
 
+/* Light mode overrides */
+html.light {
+  --background-primary: hsl(0 0% 98%);
+  --background-secondary: hsl(0 0% 94%);
+  --background-tertiary: hsl(0 0% 90%);
+  
+  --surface-primary: hsl(0 0% 100% / 0.8);
+  --surface-secondary: hsl(0 0% 100% / 0.9);
+  --surface-overlay: hsl(0 0% 100% / 0.95);
+  
+  --text-primary: hsl(240 10% 3.9%);
+  --text-secondary: hsl(240 5% 35%);
+  --text-tertiary: hsl(240 5% 50%);
+  --text-inverse: hsl(0 0% 98%);
+  
+  --border-primary: hsl(240 5% 80% / 0.4);
+  --border-secondary: hsl(240 5% 70% / 0.5);
+  --shadow-sm: 0 1px 2px hsl(240 10% 0% / 0.05);
+  --shadow-md: 0 4px 6px hsl(240 10% 0% / 0.07);
+  --shadow-lg: 0 10px 15px hsl(240 10% 0% / 0.1);
+  --shadow-xl: 0 20px 25px hsl(240 10% 0% / 0.15);
+  --shadow-2xl: 0 25px 50px hsl(240 10% 0% / 0.2);
+}
+
 /* Base styles */
 * {
   box-sizing: border-box;

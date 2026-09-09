@@ -104,6 +104,9 @@ export const Navigation: React.FC = () => {
               <span className="uppercase">{profile.role}</span>
             </button>
 
+            {/* Theme Toggle */}
+            <ThemeToggle className="p-2 rounded-lg hover:bg-slate-900 hover:text-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+
             {/* Streak Counter */}
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold">
               <Flame className="w-4 h-4 text-orange-500 fill-orange-500/30" />
