@@ -14,7 +14,11 @@ import {
   Sparkles,
   Check,
   TrendingUp,
-  Calendar
+  Calendar,
+  BookOpen,
+  Lightbulb,
+  Newspaper,
+  ArrowRight
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -120,7 +124,7 @@ export default function DashboardPage() {
                     className={`p-5 rounded-2xl border transition-all flex items-center justify-between gap-4 ${
                       m.completed
                         ? 'bg-emerald-500/10 border-emerald-500/30 text-slate-300'
-                        : 'bg-slate-950 border-slate-800 text-slate-100 hover:border-slate-700'
+                        : 'bg-slate-950 border border-slate-800 text-slate-100 hover:border-slate-700'
                     }`}
                   >
                     <div className="flex-1">
@@ -147,6 +151,87 @@ export default function DashboardPage() {
                     </button>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* Calisthenics Fundamentals Section */}
+            <div className="bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-3xl shadow-xl">
+              <div className="flex items-center gap-2 mb-6">
+                <BookOpen className="w-5 h-5 text-amber-400" />
+                <h2 className="text-2xl font-black text-white">Calisthenics Fundamentals</h2>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-slate-950 border border-slate-800 p-5 rounded-2xl">
+                  <h3 className="text-lg font-bold text-white mb-2">What is Calisthenics?</h3>
+                  <p className="text-sm text-slate-400 leading-relaxed">
+                    Calisthenics is a form of exercise that uses your body weight for resistance training. 
+                    It builds strength, flexibility, and coordination through movements like push-ups, pull-ups, 
+                    squats, and handstands. No equipment needed — just your body and gravity.
+                  </p>
+                </div>
+                
+                <div className="bg-slate-950 border border-slate-800 p-5 rounded-2xl">
+                  <h3 className="text-lg font-bold text-white mb-2">Core Principles</h3>
+                  <ul className="space-y-2 text-sm text-slate-400">
+                    <li className="flex items-start gap-2">
+                      <span className="text-amber-400 mt-0.5">•</span>
+                      <span><strong className="text-slate-200">Progressive Overload:</strong> Gradually increase difficulty to build strength</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-amber-400 mt-0.5">•</span>
+                      <span><strong className="text-slate-200">Form First:</strong> Perfect technique prevents injury and maximizes gains</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-amber-400 mt-0.5">•</span>
+                      <span><strong className="text-slate-200">Consistency:</strong> Regular practice beats sporadic intense sessions</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-amber-400 mt-0.5">•</span>
+                      <span><strong className="text-slate-200">Recovery:</strong> Rest and nutrition are just as important as training</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="bg-slate-950 border border-slate-800 p-5 rounded-2xl">
+                  <h3 className="text-lg font-bold text-white mb-2">Beginner to Advanced Path</h3>
+                  <div className="space-y-3">
+                    {[
+                      { level: 'Beginner', skills: 'Push-ups, Squats, Planks' },
+                      { level: 'Intermediate', skills: 'Pull-ups, Dips, L-Sit' },
+                      { level: 'Advanced', skills: 'Handstand, Muscle-Up, Front Lever' },
+                      { level: 'Elite', skills: 'Planche, Human Flag, One-Arm Push-ups' }
+                    ].map((step, idx) => (
+                      <div key={idx} className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold text-xs">
+                          {idx + 1}
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-white">{step.level}</p>
+                          <p className="text-xs text-slate-400">{step.skills}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-slate-950 border border-slate-800 p-5 rounded-2xl">
+                  <h3 className="text-lg font-bold text-white mb-2">Training Tips</h3>
+                  <div className="space-y-3">
+                    {[
+                      'Warm up for 10-15 minutes before every session',
+                      'Focus on controlled movements, not speed',
+                      'Train 3-4 times per week with rest days in between',
+                      'Track your progress with photos and videos',
+                      'Join a community for motivation and accountability'
+                    ].map((tip, idx) => (
+                      <div key={idx} className="flex items-start gap-2">
+                        <Lightbulb className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
+                        <p className="text-sm text-slate-400">{tip}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -221,6 +306,41 @@ export default function DashboardPage() {
                   <div key={cat.name} className="p-4 rounded-xl bg-slate-950 border border-slate-800">
                     <span className="text-slate-400 font-semibold block text-xs">{cat.name}</span>
                     <span className="text-amber-400 font-black text-lg">Level {cat.level}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* News & Updates */}
+            <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl">
+              <div className="flex items-center gap-2 mb-4">
+                <Newspaper className="w-5 h-5 text-amber-400" />
+                <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-300">Latest Updates</h3>
+              </div>
+              <div className="space-y-4">
+                {[
+                  {
+                    title: 'New Skill Tree Update',
+                    desc: 'We\'ve added advanced progressions for Planche and Front Lever.',
+                    date: '2 days ago'
+                  },
+                  {
+                    title: 'Community Challenge',
+                    desc: 'Join the 30-day push-up challenge and earn exclusive badges.',
+                    date: '1 week ago'
+                  },
+                  {
+                    title: 'AI Coach Enhanced',
+                    desc: 'Get personalized workout recommendations based on your goals.',
+                    date: '2 weeks ago'
+                  }
+                ].map((news, idx) => (
+                  <div key={idx} className="flex gap-3 pb-4 last:pb-0 last:border-0 border-b border-slate-800 last:">
+                    <div className="flex-1">
+                      <h4 className="text-sm font-bold text-white mb-1">{news.title}</h4>
+                      <p className="text-xs text-slate-400 mb-1">{news.desc}</p>
+                      <span className="text-[10px] text-slate-500">{news.date}</span>
+                    </div>
                   </div>
                 ))}
               </div>
