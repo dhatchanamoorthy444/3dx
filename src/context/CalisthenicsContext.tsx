@@ -38,7 +38,7 @@ interface CalisthenicsContextType {
   
   isLoggedIn: boolean;
   currentUser: { username: string; email: string; role: string } | null;
-  login: (usernameOrEmail: string, password: string) => { success: boolean; error?: string };
+  login: (usernameOrEmail: string, password: string, preferredRole?: 'user' | 'admin') => { success: boolean; error?: string };
   logout: () => void;
   botDetected: boolean;
   setBotDetected: (value: boolean) => void;
@@ -203,7 +203,7 @@ export function calculateLevelsFromAssessment(assessment: UserAssessment) {
 }
 
 export const CalisthenicsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, saveWorkout } = useAuth();
+  const { user: authUser, saveWorkout } = useAuth();
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
   const [exercises, setExercises] = useState<Exercise[]>(INITIAL_EXERCISES);
   const [skills, setSkills] = useState<SkillNode[]>(INITIAL_SKILLS);
@@ -216,6 +216,20 @@ export const CalisthenicsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<{ username: string; email: string; role: string } | null>(null);
   const [botDetected, setBotDetected] = useState(false);
+
+  useEffect(() => {
+    if (authUser) {
+      setProfile(prev => ({
+        ...prev,
+        role: authUser.role,
+        id: authUser.id,
+        username: authUser.username,
+        email: authUser.email
+      }));
+      setIsLoggedIn(true);
+      setCurrentUser({ username: authUser.username, email: authUser.email, role: authUser.role });
+    }
+  }, [authUser]);
 
   const [currentNutrition, setCurrentNutrition] = useState<DailyNutritionLog>(() => {
     const todayStr = new Date().toISOString().split('T')[0];
@@ -383,7 +397,7 @@ export const CalisthenicsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }));
   };
 
-  const login = (usernameOrEmail: string, password: string) => {
+  const login = (usernameOrEmail: string, password: string, preferredRole?: 'user' | 'admin') => {
     setBotDetected(false);
     
     const trimmed = usernameOrEmail.trim().toLowerCase();
@@ -403,8 +417,17 @@ export const CalisthenicsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     );
 
     if (user) {
+      if (preferredRole && user.role !== preferredRole) {
+        return { success: false, error: `Invalid credentials for ${preferredRole} login. Please use the ${user.role} demo account.` };
+      }
       setIsLoggedIn(true);
       setCurrentUser({ username: user.username, email: user.email, role: user.role });
+      setProfile(prev => ({ ...prev, role: user.role }));
+      const maxAge = 60 * 60 * 24 * 7;
+      if (typeof document !== 'undefined') {
+        document.cookie = `cali_session=1; path=/; max-age=${maxAge}; SameSite=Lax`;
+        document.cookie = `cali_role=${user.role}; path=/; max-age=${maxAge}; SameSite=Lax`;
+      }
       localStorage.setItem('cali_is_logged_in', 'true');
       localStorage.setItem('cali_current_user', JSON.stringify({ username: user.username, email: user.email, role: user.role }));
       return { success: true };
@@ -416,6 +439,11 @@ export const CalisthenicsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const logout = () => {
     setIsLoggedIn(false);
     setCurrentUser(null);
+    setProfile(prev => ({ ...prev, role: 'admin' }));
+    if (typeof document !== 'undefined') {
+      document.cookie = 'cali_session=; path=/; max-age=0';
+      document.cookie = 'cali_role=; path=/; max-age=0';
+    }
     localStorage.removeItem('cali_is_logged_in');
     localStorage.removeItem('cali_current_user');
   };
@@ -532,13 +560,13 @@ export const CalisthenicsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     checkSkillUnlocks(updatedPRs);
 
     // Save to Supabase if user is logged in
-    if (user) {
+    if (authUser) {
       saveWorkout(todayStr, {
         ...workoutData,
         id: newLog.id,
         xpEarned: totalXP,
         streak: newStreak
-      }).catch(err => console.error('Failed to save workout to Supabase:', err));
+      }).catch((err: Error) => console.error('Failed to save workout to Supabase:', err));
     }
   };
 
