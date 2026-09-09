@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCalisthenics } from '../context/CalisthenicsContext';
 import { Logo } from './Logo';
+import { ThemeToggle } from './ThemeToggle';
 import { 
   Dumbbell, 
   GitFork, 
