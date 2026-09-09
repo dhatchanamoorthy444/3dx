@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useCalisthenics } from '../../context/CalisthenicsContext';
-import { Bot, Send, User } from 'lucide-react';
+import { Bot, Send, User, Loader2 } from 'lucide-react';
 
 interface ChatMessage {
   sender: 'user' | 'ai';
@@ -14,66 +14,48 @@ export default function AICoachPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       sender: 'ai',
-      text: `Hello Athlete! I'm your AI Calisthenics & Nutrition Assistant. 
-Currently configured for your Level ${profile.levels.overall} profile, ${profile.assessment.trainingLocation.toUpperCase()} training environment, and ${profile.assessment.dietPreference.toUpperCase()} diet. 
-Ask me about exercise regressions, wrist prep, meal substitutions, or protein alternatives!`
+      text: `What's up, Athlete? I'm Anti-Gravity AI. Ready to help you conquer bodyweight training, unlock advanced skills, and build raw functional power. What are we working on today?`
     }
   ]);
   const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const quickPrompts = [
-    'I don\'t have paneer today. What can I eat instead?',
-    'How do I overcome a pull-up plateau?',
-    'High protein vegetarian meal options?',
-    'My wrists hurt during handstands',
-    'What exercises build a muscle-up transition?'
+    "How do I overcome a pull-up plateau?",
+    "Planche progressions for beginners",
+    "High protein vegetarian meals for recovery",
+    "Wrist pain during handstands - fix it",
+    "Muscle-up transition techniques"
   ];
 
-  const handleSend = (textToSend?: string) => {
+  const handleSend = async (textToSend?: string) => {
     const query = textToSend || input;
-    if (!query.trim()) return;
+    if (!query.trim() || loading) return;
 
     const userMsg: ChatMessage = { sender: 'user', text: query };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
+    setLoading(true);
 
-    setTimeout(() => {
-      let reply = '';
-      const q = query.toLowerCase();
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userPrompt: query }),
+      });
 
-      if (q.includes('paneer') || q.includes('substitute') || q.includes('replace')) {
-        reply = `Great nutrition question! Depending on your ${profile.assessment.dietPreference} preference, here are excellent substitutions:
-1. Tofu (Firm or Soya Chunks): High protein, low fat.
-2. Greek Yogurt / Curd (Dahi): Great for breakfast or snacks.
-3. 3 Whole Eggs or Egg Whites (If eggetarian/non-veg).
-4. Boiled Chickpeas (Chana) or Sprouted Moong Dal.`;
-      } else if (q.includes('vegetarian') || q.includes('protein')) {
-        reply = `Top Indian vegetarian protein sources for calisthenics recovery:
-• Paneer & Tofu (18-22g protein per 100g)
-• Roasted Chana & Peanut Chat (15g protein)
-• Dal Makhani / Rajma with Quinoa or Brown Rice (18g protein)
-• Soya Chunks Curry (52g protein per 100g dry weight!)`;
-      } else if (q.includes('wrist') || q.includes('pain') || q.includes('hurt')) {
-        reply = `Wrist preparation is essential for handstands and planche work! 
-1. Perform 15 dynamic wrist rocks on knees (palms down, fingers forward & sideways).
-2. Perform wrist turns (back of hands flat on floor).
-3. If joint pain persists beyond muscle soreness, stop the aggravating movement and consult a medical or physical therapy professional.`;
-      } else if (q.includes('pull-up') || q.includes('plateau')) {
-        reply = `To break a pull-up plateau at Level ${profile.levels.pull}:
-1. Incorporate 3-5 second slow eccentric negative pull-ups.
-2. Focus on scapular pulls at the start of every rep.
-3. Utilize resistance bands to increase volume while keeping form clean.`;
-      } else if (q.includes('muscle-up') || q.includes('transition')) {
-        reply = `The Muscle-Up requires explosive pulling height and rapid wrist transition:
-1. Master Chest-to-Bar pull-ups (aim for 8 clean reps).
-2. Build deep parallel bar dip strength (12+ reps).
-3. Practice explosive high pull-ups aiming lower chest to the bar!`;
+      const data = await response.json();
+      
+      if (data.text) {
+        setMessages(prev => [...prev, { sender: 'ai', text: data.text }]);
       } else {
-        reply = `For optimal progress in calisthenics & nutrition: prioritize clean form over momentum, respect joint adaptation timelines, ensure adequate protein intake (1.6-2.0g per kg of bodyweight), and allow 48 hours rest between heavy pushing or pulling blocks.`;
+        setMessages(prev => [...prev, { sender: 'ai', text: 'Something went wrong on my end, Athlete. Let\'s try that again.' }]);
       }
-
-      setMessages(prev => [...prev, { sender: 'ai', text: reply }]);
-    }, 600);
+    } catch (err) {
+      setMessages(prev => [...prev, { sender: 'ai', text: 'Connection error. Check your signal and try again, Athlete.' }]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -87,12 +69,12 @@ Ask me about exercise regressions, wrist prep, meal substitutions, or protein al
               <Bot className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-2xl font-extrabold">AI Workout & Food Assistant</h1>
-              <p className="text-xs text-slate-400">Custom recommendations for exercises, form, & meal substitutions</p>
+              <h1 className="text-2xl font-extrabold">Anti-Gravity AI</h1>
+              <p className="text-xs text-slate-400">Elite Calisthenics Coach • Level {profile.levels.overall} Context</p>
             </div>
           </div>
           <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
-            Online • Level {profile.levels.overall} Context
+            Online
           </span>
         </div>
 
@@ -136,6 +118,16 @@ Ask me about exercise regressions, wrist prep, meal substitutions, or protein al
                 )}
               </div>
             ))}
+            {loading && (
+              <div className="flex gap-3 justify-start">
+                <div className="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center font-bold text-xs shrink-0">
+                  AI
+                </div>
+                <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-slate-200 rounded-tl-none">
+                  <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Input Box */}
@@ -150,7 +142,8 @@ Ask me about exercise regressions, wrist prep, meal substitutions, or protein al
             />
             <button
               onClick={() => handleSend()}
-              className="p-3 rounded-xl bg-amber-500 text-slate-950 font-bold hover:bg-amber-400 transition-colors shadow-lg shadow-amber-500/20"
+              disabled={loading}
+              className="p-3 rounded-xl bg-amber-500 text-slate-950 font-bold hover:bg-amber-400 transition-colors shadow-lg shadow-amber-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send className="w-5 h-5" />
             </button>

@@ -3,6 +3,21 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import { getSupabaseClient } from '@/lib/supabaseClient';
 
+function setSessionCookie(role: string) {
+  if (typeof document !== 'undefined') {
+    const maxAge = 60 * 60 * 24 * 7;
+    document.cookie = `cali_session=1; path=/; max-age=${maxAge}; SameSite=Lax`;
+    document.cookie = `cali_role=${role}; path=/; max-age=${maxAge}; SameSite=Lax`;
+  }
+}
+
+function clearSessionCookie() {
+  if (typeof document !== 'undefined') {
+    document.cookie = 'cali_session=; path=/; max-age=0';
+    document.cookie = 'cali_role=; path=/; max-age=0';
+  }
+}
+
 export interface UserProfile {
   id: string;
   username: string;
@@ -76,15 +91,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .single();
         
         if (profile) {
+          const role = profile.role || 'user';
           setUser({
             id: profile.id,
             username: profile.username,
             email: profile.email,
-            role: profile.role
+            role
           });
+          setSessionCookie(role);
         }
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
+        clearSessionCookie();
       }
     });
 
@@ -162,6 +180,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await getSupabaseClient().auth.signOut();
       setUser(null);
+      clearSessionCookie();
     } catch (error) {
       console.error('Sign out error:', error);
     }

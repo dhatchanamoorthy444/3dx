@@ -6,13 +6,14 @@ import { useRouter } from 'next/navigation';
 import { useCalisthenics } from '../../context/CalisthenicsContext';
 import { useAuth } from '../../context/AuthContext';
 import { WorkoutMascot } from '../../components/WorkoutMascot';
-import { Dumbbell, Lock, Mail, ArrowRight } from 'lucide-react';
+import { Dumbbell, Lock, Mail, ArrowRight, Shield, User as UserIcon } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isLoggedIn, botDetected, setBotDetected } = useCalisthenics();
+  const { login, isLoggedIn } = useCalisthenics();
   const { signIn, signUp, loading } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
+  const [role, setRole] = useState<'user' | 'admin'>('user');
   const [emailOrUsername, setEmailOrUsername] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
@@ -30,7 +31,6 @@ export default function LoginPage() {
     setError('');
 
     if (honeypot) {
-      setBotDetected(true);
       return;
     }
 
@@ -38,7 +38,10 @@ export default function LoginPage() {
     if (isSignUp) {
       result = await signUp(emailOrUsername, password, username || emailOrUsername.split('@')[0]);
     } else {
-      result = await signIn(emailOrUsername, password);
+      result = await login(emailOrUsername, password, role);
+      if (!result.success) {
+        result = await signIn(emailOrUsername, password);
+      }
     }
 
     if (result.success) {
@@ -64,17 +67,51 @@ export default function LoginPage() {
           </p>
         </div>
 
+        {/* Role Selection Tabs */}
+        {!isSignUp && (
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setRole('user')}
+              className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border text-sm font-bold transition-all ${
+                role === 'user'
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                  : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+              }`}
+            >
+              <UserIcon className="w-4 h-4" />
+              <span>Athlete</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setRole('admin')}
+              className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border text-sm font-bold transition-all ${
+                role === 'admin'
+                  ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+                  : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+              }`}
+            >
+              <Shield className="w-4 h-4" />
+              <span>Admin</span>
+            </button>
+          </div>
+        )}
+
         {/* Demo Credentials */}
         {!isSignUp && (
           <div className="bg-slate-950/50 border border-slate-800 rounded-xl p-4 space-y-3">
             <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 text-center">Demo Credentials</p>
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-3 space-y-1">
-                <p className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Admin</p>
+              <div className={`bg-slate-900/50 border rounded-lg p-3 space-y-1 transition-all ${
+                role === 'admin' ? 'border-rose-500/30' : 'border-slate-800'
+              }`}>
+                <p className="text-[10px] font-bold text-rose-400 uppercase tracking-wider">Admin</p>
                 <p className="text-[11px] font-mono text-slate-300">admin / admin</p>
                 <p className="text-[10px] text-slate-500">admin@caligym.com</p>
               </div>
-              <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-3 space-y-1">
+              <div className={`bg-slate-900/50 border rounded-lg p-3 space-y-1 transition-all ${
+                role === 'user' ? 'border-emerald-500/30' : 'border-slate-800'
+              }`}>
                 <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">User</p>
                 <p className="text-[11px] font-mono text-slate-300">athlete123 / password</p>
                 <p className="text-[10px] text-slate-500">athlete@caligym.com</p>
@@ -84,11 +121,6 @@ export default function LoginPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {botDetected && (
-            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold">
-              Suspicious activity detected. Please try again.
-            </div>
-          )}
           {error && (
             <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold">
               {error}
@@ -163,7 +195,7 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-sm hover:opacity-90 transition-opacity shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span>{loading ? 'Please wait...' : (isSignUp ? 'Create Account' : 'Sign In')}</span>
+            <span>{loading ? 'Please wait...' : (isSignUp ? 'Create Account' : `Login as ${role === 'admin' ? 'Administrator' : 'Athlete'}`)}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
