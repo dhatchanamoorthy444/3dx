@@ -51,7 +51,7 @@ export default function LoginPage() {
           <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 w-fit mx-auto">
             <Dumbbell className="w-8 h-8" />
           </div>
-          <h1 className="text-2xl font-black text-white">Welcome to CaliRoadmap</h1>
+          <h1 className="text-2xl font-black text-white">Welcome to CaliGym</h1>
           <p className="text-xs text-slate-400">Log in with your username or email</p>
         </div>
 

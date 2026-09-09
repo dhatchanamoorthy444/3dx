@@ -135,7 +135,7 @@ const DEFAULT_ASSESSMENT: UserAssessment = {
 const DEFAULT_PROFILE: UserProfile = {
   id: 'usr_demo_1',
   username: 'athlete123',
-  email: 'athlete@caliroadmap.com',
+  email: 'athlete@caligym.com',
   name: 'Athlete',
   role: 'admin',
   xp: 450,
@@ -392,8 +392,8 @@ export const CalisthenicsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
 
     const demoUsers = [
-      { username: 'admin', email: 'admin@caliroadmap.com', password: 'admin', role: 'admin' as const },
-      { username: 'athlete123', email: 'athlete@caliroadmap.com', password: 'password', role: 'user' as const }
+      { username: 'admin', email: 'admin@caligym.com', password: 'admin', role: 'admin' as const },
+      { username: 'athlete123', email: 'athlete@caligym.com', password: 'password', role: 'user' as const }
     ];
 
     const user = demoUsers.find(u => 

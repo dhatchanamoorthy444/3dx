@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CaliRoadmap — Complete Calisthenics Learning & Progression Platform",
+  title: "CaliGym — Complete Calisthenics Learning & Progression Platform",
   description: "Personal calisthenics roadmap taking athletes from beginner fundamentals to advanced skills like Muscle-Up, Handstand, Front Lever, and Planche.",
 };
 

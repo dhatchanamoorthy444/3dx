@@ -42,7 +42,7 @@ export default function RegisterPage() {
           <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 w-fit mx-auto">
             <Dumbbell className="w-8 h-8" />
           </div>
-          <h1 className="text-2xl font-black text-white">Join CaliRoadmap</h1>
+          <h1 className="text-2xl font-black text-white">Join CaliGym</h1>
           <p className="text-xs text-slate-400">Start your bodyweight skill progression game</p>
         </div>
 

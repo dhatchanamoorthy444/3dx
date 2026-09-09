@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCalisthenics } from '../context/CalisthenicsContext';
+import { Logo } from './Logo';
 import { 
   Dumbbell, 
   GitFork, 
@@ -49,12 +50,7 @@ export const Navigation: React.FC = () => {
           {/* Logo & Level Badge */}
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-2 group">
-              <div className="p-2 rounded-xl bg-gradient-to-tr from-amber-500 to-red-600 text-white font-bold shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform">
-                <Dumbbell className="w-5 h-5" />
-              </div>
-              <span className="font-extrabold text-lg sm:text-xl tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
-                CALI<span className="text-amber-500">ROADMAP</span>
-              </span>
+              <Logo showText={true} size="md" />
             </Link>
 
             <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs font-semibold">
