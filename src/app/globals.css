@@ -1,5 +1,20 @@
 @import "tailwindcss";
 
+/* Custom Theme - Obsidian Black + Neon Volt */
+@theme {
+  --color-amber-400: #CCFF00;
+  --color-amber-500: #B8E600;
+  --color-amber-600: #9FCC00;
+  --color-orange-500: #CCFF00;
+  --color-orange-400: #D9FF33;
+  --color-emerald-400: #CCFF00;
+  --color-lime-400: #CCFF00;
+  --color-lime-500: #B8E600;
+  --color-volt-400: #CCFF00;
+  --color-volt-500: #B8E600;
+  --color-volt-600: #9FCC00;
+}
+
 /* Premium OS-style Calisthenics App UI
  * Modern operating system interface with professional sports app aesthetics
  * Clean minimal layouts, soft depth, rounded cards, subtle transparency
