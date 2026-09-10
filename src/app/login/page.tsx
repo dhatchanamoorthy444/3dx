@@ -3,28 +3,19 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCalisthenics } from '../../context/CalisthenicsContext';
 import { useAuth } from '../../context/AuthContext';
 import { WorkoutMascot } from '../../components/WorkoutMascot';
-import { Dumbbell, Lock, Mail, ArrowRight, Shield, User as UserIcon } from 'lucide-react';
+import { Lock, Mail, ArrowRight } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isLoggedIn } = useCalisthenics();
-  const { signIn, signUp, loading } = useAuth();
+  const { signIn, signUp, loading, resetPassword } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
-  const [role, setRole] = useState<'user' | 'admin'>('user');
-  const [emailOrUsername, setEmailOrUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
   const [honeypot, setHoneypot] = useState('');
-
-  React.useEffect(() => {
-    if (isLoggedIn) {
-      router.push('/');
-    }
-  }, [isLoggedIn, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,20 +27,29 @@ export default function LoginPage() {
 
     let result;
     if (isSignUp) {
-      result = await signUp(emailOrUsername, password, username || emailOrUsername.split('@')[0]);
+      result = await signUp(email, password, username || email.split('@')[0]);
     } else {
-      // Try demo login first
-      result = login(emailOrUsername, password, role);
-      if (!result.success) {
-        // Fall back to Supabase auth
-        result = await signIn(emailOrUsername, password);
-      }
+      result = await signIn(email, password);
     }
 
     if (result.success) {
       router.push('/');
     } else {
       setError(result.error || 'Authentication failed.');
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      setError('Please enter your email address first.');
+      return;
+    }
+    const result = await resetPassword(email);
+    if (result.success) {
+      setError('Password reset email sent! Check your inbox.');
+    } else {
+      setError(result.error || 'Failed to send reset email.');
     }
   };
 
@@ -65,62 +65,9 @@ export default function LoginPage() {
             {isSignUp ? 'Join CaliGym' : 'Welcome to CaliGym'}
           </h1>
           <p className="text-xs text-slate-400">
-            {isSignUp ? 'Create your account' : 'Log in with your username or email'}
+            {isSignUp ? 'Create your account' : 'Log in with your email and password'}
           </p>
         </div>
-
-        {/* Role Selection Tabs - Only for login */}
-        {!isSignUp && (
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => setRole('user')}
-              className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border text-sm font-bold transition-all ${
-                role === 'user'
-                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                  : 'bg-slate-950 border border-slate-800 text-slate-400 hover:text-white'
-              }`}
-            >
-              <UserIcon className="w-4 h-4" />
-              <span>Athlete</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setRole('admin')}
-              className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border text-sm font-bold transition-all ${
-                role === 'admin'
-                  ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
-                  : 'bg-slate-950 border border-slate-800 text-slate-400 hover:text-white'
-              }`}
-            >
-              <Shield className="w-4 h-4" />
-              <span>Admin</span>
-            </button>
-          </div>
-        )}
-
-        {/* Demo Credentials */}
-        {!isSignUp && (
-          <div className="bg-slate-950/50 border border-slate-800 rounded-xl p-4 space-y-3">
-            <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 text-center">Demo Credentials</p>
-            <div className="grid grid-cols-2 gap-3">
-              <div className={`bg-slate-900/50 border rounded-lg p-3 space-y-1 transition-all ${
-                role === 'admin' ? 'border-rose-500/30' : 'border-slate-800'
-              }`}>
-                <p className="text-[10px] font-bold text-rose-400 uppercase tracking-wider">Admin</p>
-                <p className="text-[11px] font-mono text-slate-300">admin / admin</p>
-                <p className="text-[10px] text-slate-500">admin@caligym.com</p>
-              </div>
-              <div className={`bg-slate-900/50 border rounded-lg p-3 space-y-1 transition-all ${
-                role === 'user' ? 'border-emerald-500/30' : 'border-slate-800'
-              }`}>
-                <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">User</p>
-                <p className="text-[11px] font-mono text-slate-300">athlete123 / password</p>
-                <p className="text-[10px] text-slate-500">athlete@caligym.com</p>
-              </div>
-            </div>
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
@@ -146,16 +93,15 @@ export default function LoginPage() {
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-400 mb-1">Email or Username</label>
+            <label className="block text-xs font-semibold text-slate-400 mb-1">Email</label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
               <input
-                type="text"
+                type="email"
                 required
-                placeholder={isSignUp ? "you@example.com" : "athlete123 or athlete@email.com"}
-                value={emailOrUsername}
-                onChange={e => setEmailOrUsername(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:border-amber-500 focus:outline-none"
+                placeholder="you@example.com"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-4 pr-4 py-2.5 text-sm focus:border-amber-500 focus:outline-none"
               />
             </div>
           </div>
@@ -164,20 +110,23 @@ export default function LoginPage() {
             <div className="flex justify-between items-center mb-1">
               <label className="block text-xs font-semibold text-slate-400">Password</label>
               {!isSignUp && (
-                <Link href="/forgot-password" className="text-xs text-amber-400 hover:underline font-semibold">
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-xs text-amber-400 hover:underline font-semibold"
+                >
                   Forgot password?
-                </Link>
+                </button>
               )}
             </div>
             <div className="relative">
-              <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
               <input
                 type="password"
                 required
                 placeholder="••••••••"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:border-amber-500 focus:outline-none"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-4 pr-4 py-2.5 text-sm focus:border-amber-500 focus:outline-none"
               />
             </div>
           </div>
@@ -197,8 +146,7 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-sm hover:opacity-90 transition-opacity shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span>{loading ? 'Please wait...' : (isSignUp ? 'Create Account' : `Login as ${role === 'admin' ? 'Administrator' : 'Athlete'}`)}</span>
-            <ArrowRight className="w-4 h-4" />
+            <span>{loading ? 'Please wait...' : (isSignUp ? 'Create Account' : 'Sign In')}</span>
           </button>
         </form>
 

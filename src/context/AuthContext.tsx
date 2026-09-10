@@ -40,6 +40,7 @@ interface AuthContextType {
   signIn: (emailOrUsername: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signUp: (email: string, password: string, username: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
   saveWorkout: (date: string, workoutData: any) => Promise<{ success: boolean; error?: string }>;
   getWorkout: (date: string) => Promise<WorkoutLog | null>;
   getWorkouts: (startDate?: string, endDate?: string) => Promise<WorkoutLog[]>;
@@ -186,6 +187,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const resetPassword = async (email: string) => {
+    try {
+      setLoading(true);
+      
+      const { error } = await getSupabaseClient().auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: 'An unexpected error occurred' };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const saveWorkout = async (date: string, workoutData: any) => {
     try {
       if (!user) {
@@ -263,6 +284,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signIn,
       signUp,
       signOut,
+      resetPassword,
       saveWorkout,
       getWorkout,
       getWorkouts
