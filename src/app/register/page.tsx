@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCalisthenics } from '../../context/CalisthenicsContext';
@@ -18,6 +18,7 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [honeypot, setHoneypot] = useState('');
   const [error, setError] = useState('');
+  const formStartTime = useRef<number>(Date.now());
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +27,14 @@ export default function RegisterPage() {
     if (honeypot) {
       setBotDetected(true);
       setError('Suspicious activity detected. Please try again.');
+      return;
+    }
+
+    // Bot detection: form submitted too quickly (bots fill instantly)
+    const elapsed = Date.now() - formStartTime.current;
+    if (elapsed < 2000) {
+      setBotDetected(true);
+      setError('Request submitted too quickly. Please try again.');
       return;
     }
 
@@ -142,11 +151,12 @@ export default function RegisterPage() {
 
           <input
             type="text"
+            name="_gotcha"
             tabIndex={-1}
-            autoComplete="off"
+            autoComplete="new-password"
             value={honeypot}
             onChange={e => setHoneypot(e.target.value)}
-            className="hidden"
+            className="absolute left-[-5000px] top-auto w-0 h-0 overflow-hidden"
             aria-hidden="true"
           />
 

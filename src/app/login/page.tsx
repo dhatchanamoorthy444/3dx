@@ -9,61 +9,77 @@ import { WorkoutMascot } from '../../components/WorkoutMascot';
 export default function LoginPage() {
   const router = useRouter();
   const { signIn, signUp, loading, resetPassword } = useAuth();
-  const { login: demoLogin } = useCalisthenics();
+  const { login: demoLogin, setBotDetected } = useCalisthenics();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
   const [honeypot, setHoneypot] = useState('');
+  const formStartTime = React.useRef<number>(Date.now());
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
+    // Bot detection: honeypot field should be empty
     if (honeypot) {
+      setBotDetected(true);
       setError('Suspicious activity detected. Please try again.');
       return;
     }
 
-    if (isSignUp) {
-      const signUpResult = await signUp(email, password, username || email.split('@')[0]);
-      if (signUpResult.success) {
-        router.push('/dashboard');
-      } else {
-        setError(signUpResult.error || 'Authentication failed.');
-      }
+    // Bot detection: form submitted too quickly (bots fill instantly)
+    const elapsed = Date.now() - formStartTime.current;
+    if (elapsed < 2000) {
+      setBotDetected(true);
+      setError('Request submitted too quickly. Please try again.');
       return;
     }
 
-    // Login flow - try Supabase first, fall back to demo login
-    const signInResult = await signIn(email, password);
-    
-    let role: 'user' | 'admin' = 'user';
-    let success = false;
-
-    if (signInResult.success) {
-      success = true;
-      role = signInResult.role || 'user';
-    } else {
-      // If Supabase fails (e.g., not configured), try demo login
-      const demoResult = demoLogin(email, password);
-      if (demoResult.success) {
-        success = true;
-        role = 'admin';
-      } else {
-        // Show the demo login error, or the Supabase error if demo credentials don't match
-        setError(demoResult.error || 'Authentication failed. Please check your credentials.');
+    try {
+      if (isSignUp) {
+        const signUpResult = await signUp(email, password, username || email.split('@')[0]);
+        if (signUpResult.success) {
+          router.push('/dashboard');
+        } else {
+          setError(signUpResult.error || 'Authentication failed.');
+        }
         return;
       }
-    }
 
-    if (success) {
-      if (role === 'admin') {
-        router.push('/admin-dashboard');
+      // Login flow - try Supabase first, fall back to demo login
+      const signInResult = await signIn(email, password);
+      
+      let role: 'user' | 'admin' = 'user';
+      let success = false;
+
+      if (signInResult.success) {
+        success = true;
+        role = signInResult.role || 'user';
       } else {
-        router.push('/dashboard');
+        // If Supabase fails (e.g., not configured), try demo login
+        const demoResult = demoLogin(email, password);
+        if (demoResult.success) {
+          success = true;
+          role = 'admin';
+        } else {
+          // Show the demo login error, or the Supabase error if demo credentials don't match
+          setError(demoResult.error || 'Authentication failed. Please check your credentials.');
+          return;
+        }
       }
+
+      if (success) {
+        if (role === 'admin') {
+          router.push('/admin-dashboard');
+        } else {
+          router.push('/dashboard');
+        }
+      }
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.');
+      console.error('Login error:', err);
     }
   };
 
@@ -161,11 +177,12 @@ export default function LoginPage() {
 
           <input
             type="text"
+            name="_gotcha"
             tabIndex={-1}
-            autoComplete="off"
+            autoComplete="new-password"
             value={honeypot}
             onChange={e => setHoneypot(e.target.value)}
-            className="hidden"
+            className="absolute left-[-5000px] top-auto w-0 h-0 overflow-hidden"
             aria-hidden="true"
           />
 
