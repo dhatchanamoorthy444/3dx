@@ -1,15 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
+import { useCalisthenics } from '../../context/CalisthenicsContext';
 import { WorkoutMascot } from '../../components/WorkoutMascot';
-import { Lock, Mail, ArrowRight } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
   const { signIn, signUp, loading, resetPassword } = useAuth();
+  const { login: demoLogin } = useCalisthenics();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,29 +22,47 @@ export default function LoginPage() {
     setError('');
 
     if (honeypot) {
+      setError('Suspicious activity detected. Please try again.');
       return;
     }
 
-    let result;
     if (isSignUp) {
-      result = await signUp(email, password, username || email.split('@')[0]);
-      if (result.success) {
+      const signUpResult = await signUp(email, password, username || email.split('@')[0]);
+      if (signUpResult.success) {
         router.push('/dashboard');
+      } else {
+        setError(signUpResult.error || 'Authentication failed.');
       }
+      return;
+    }
+
+    // Login flow - try Supabase first, fall back to demo login
+    const signInResult = await signIn(email, password);
+    
+    let role: 'user' | 'admin' = 'user';
+    let success = false;
+
+    if (signInResult.success) {
+      success = true;
+      role = signInResult.role || 'user';
     } else {
-      result = await signIn(email, password);
-      if (result.success) {
-        // Redirect based on role
-        if (result.role === 'admin') {
-          router.push('/admin-dashboard');
-        } else {
-          router.push('/dashboard');
-        }
+      // If Supabase fails, try demo login
+      const demoResult = demoLogin(email, password);
+      if (demoResult.success) {
+        success = true;
+        role = 'admin';
+      } else {
+        setError(signInResult.error || demoResult.error || 'Authentication failed.');
+        return;
       }
     }
 
-    if (!result.success) {
-      setError(result.error || 'Authentication failed.');
+    if (success) {
+      if (role === 'admin') {
+        router.push('/admin-dashboard');
+      } else {
+        router.push('/dashboard');
+      }
     }
   };
 

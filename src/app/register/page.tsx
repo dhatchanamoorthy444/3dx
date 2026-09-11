@@ -4,33 +4,54 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCalisthenics } from '../../context/CalisthenicsContext';
+import { useAuth } from '../../context/AuthContext';
 import { Dumbbell, ArrowRight } from 'lucide-react';
 
 export default function RegisterPage() {
   const router = useRouter();
   const { login, botDetected, setBotDetected } = useCalisthenics();
+  const { signUp } = useAuth();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [honeypot, setHoneypot] = useState('');
+  const [error, setError] = useState('');
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
 
     if (honeypot) {
       setBotDetected(true);
+      setError('Suspicious activity detected. Please try again.');
       return;
     }
 
     if (password !== confirmPassword) {
+      setError('Passwords do not match.');
       return;
     }
 
-    const result = login(username || email, password);
-    if (result.success) {
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+
+    // Try demo login first (works without Supabase)
+    const demoResult = login(username || email, password);
+    if (demoResult.success) {
       router.push('/assessment');
+      return;
+    }
+
+    // Fallback: Try Supabase signup
+    const signUpResult = await signUp(email, password, username || email.split('@')[0]);
+    if (signUpResult.success) {
+      router.push('/dashboard');
+    } else {
+      setError(signUpResult.error || 'Registration failed. Please try again.');
     }
   };
 
@@ -49,6 +70,12 @@ export default function RegisterPage() {
         {botDetected && (
           <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold">
             Suspicious activity detected. Please try again.
+          </div>
+        )}
+
+        {error && (
+          <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold">
+            {error}
           </div>
         )}
 
