@@ -23,7 +23,7 @@ import { EXERCISES_DATABASE as INITIAL_EXERCISES } from '../data/exercises';
 import { SKILL_TREE as INITIAL_SKILLS } from '../data/skills';
 import { INITIAL_FOODS_DATABASE } from '../data/foods';
 import { useAuth } from './AuthContext';
-import { getSupabaseClient } from '@/lib/supabaseClient';
+import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabaseClient';
 import confetti from 'canvas-confetti';
 
 // Initialize nutrition state
@@ -166,9 +166,9 @@ const DEFAULT_PROFILE: UserProfile = {
   id: '',
   username: '',
   email: '',
-  name: '',
+  name: 'Athlete', 
   role: 'user',
-  xp: 0,
+  xp: 1,
   streak: 0,
   lastWorkoutDate: undefined,
   assessment: DEFAULT_ASSESSMENT,
@@ -537,7 +537,7 @@ meals: initialMeals
   const editFood = (updatedFd: FoodItem) => setFoods(prev => prev.map(f => (f.id === updatedFd.id ? updatedFd : f)));
   const deleteFood = (fdId: string) => setFoods(prev => prev.filter(f => f.id !== fdId));
 
-  const checkSkillUnlocks = (newPRs?: Record<string, PersonalRecord>) => {
+  const checkSkillUnlocks = async (newPRs?: Record<string, PersonalRecord>) => {
     const currentPRs = newPRs || profile.personalRecords;
     const newlyUnlocked: string[] = [];
 
@@ -555,11 +555,28 @@ meals: initialMeals
     });
 
     if (newlyUnlocked.length > 0) {
+      // Update profile state
       setProfile(prev => ({
         ...prev,
         unlockedSkillIds: [...prev.unlockedSkillIds, ...newlyUnlocked],
         xp: prev.xp + newlyUnlocked.length * 250
       }));
+
+      // Persist unlocked skills to Supabase
+      if (isSupabaseConfigured() && authUser?.id) {
+        try {
+          await getSupabaseClient()
+            .from('profiles')
+            .upsert({
+              id: authUser.id,
+              unlocked_skill_ids: [...profile.unlockedSkillIds, ...newlyUnlocked],
+            }, {
+              onConflict: 'id',
+            });
+        } catch (error) {
+          console.error('Failed to persist skill unlocks:', error);
+        }
+      }
 
       confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
     }

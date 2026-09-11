@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCalisthenics } from '../../context/CalisthenicsContext';
+import { useAuth } from '../../context/AuthContext';
 import { WorkoutExerciseLog, WorkoutExerciseLogSet } from '../../types/calisthenics';
 import { EXERCISES_DATABASE } from '../../data/exercises';
 import { 
@@ -17,11 +18,12 @@ import {
   Zap
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { WorkoutLog } from '../../types/calisthenics';
 
 export default function WorkoutPage() {
   const router = useRouter();
   const { generateTodayWorkout, completeWorkout } = useCalisthenics();
-
+  const { saveWorkout, user } = useAuth();
   const workoutPlan = generateTodayWorkout();
 
   // Initialize interactive state for exercises
@@ -111,15 +113,28 @@ export default function WorkoutPage() {
 
   const handleFinishWorkout = () => {
     const xpEarned = 150 + completedSets * 10;
-    completeWorkout({
+    const workoutData = {
       title: workoutPlan.title,
       category: workoutPlan.category,
       durationMinutes: workoutPlan.estimatedDurationMins,
       exercises: logs,
       xpEarned,
       fatigueRating
-    });
-
+    };
+    
+    // Complete workout and update React state
+    completeWorkout(workoutData);
+    
+    // Persist workout to Supabase
+    if (user && user.id) {
+      saveWorkout(new Date().toISOString().split('T')[0], workoutData).then(() => {
+        // Save successful - could show success message
+      }).catch(err => {
+        // Save failed gracefully - React state already updated
+        console.error('Failed to save workout:', err);
+      });
+    }
+    
     confetti({
       particleCount: 150,
       spread: 80,

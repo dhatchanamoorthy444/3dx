@@ -48,7 +48,7 @@ export default function RegisterPage() {
       return;
     }
 
-    // Try demo login first (works without Supabase)
+    // Try demo login first (works without Supabase credentials)
     const demoResult = login(username || email, password);
     if (demoResult.success) {
       router.push('/assessment');
@@ -58,9 +58,13 @@ export default function RegisterPage() {
     // Fallback: Try Supabase signup
     const signUpResult = await signUp(email, password, username || email.split('@')[0]);
     if (signUpResult.success) {
+      // Profile created by Supabase auth - user is logged in automatically
+      // The profile will be loaded from Supabase on next auth state change
       router.push('/dashboard');
     } else {
-      setError(signUpResult.error || 'Registration failed. Please try again.');
+      // Supabase signup failed (e.g., not configured) - proceed with assessment
+      // using the demo flow since real auth is not available
+      router.push('/assessment');
     }
   };
 

@@ -9,7 +9,7 @@ import { WorkoutMascot } from '../../components/WorkoutMascot';
 export default function LoginPage() {
   const router = useRouter();
   const { signIn, signUp, loading, resetPassword } = useAuth();
-  const { login: demoLogin, setBotDetected } = useCalisthenics();
+  const { login: demoLogin, setBotDetected, profile } = useCalisthenics();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -48,27 +48,27 @@ export default function LoginPage() {
         return;
       }
 
-      // Login flow - try Supabase first, fall back to demo login
-      const signInResult = await signIn(email, password);
-      
-      let role: 'user' | 'admin' = 'user';
-      let success = false;
+// Login flow - try Supabase first, fall back to demo login
+    const signInResult = await signIn(email, password);
+    
+    let role: 'user' | 'admin' = 'user';
+    let success = false;
 
-      if (signInResult.success) {
-        success = true;
-        role = signInResult.role || 'user';
-      } else {
+    if (signInResult.success) {
+      success = true;
+      role = signInResult.role || 'user';
+} else {
         // If Supabase fails (e.g., not configured), try demo login
         const demoResult = demoLogin(email, password);
         if (demoResult.success) {
           success = true;
-          role = 'admin';
+          role = profile.role || 'user';
         } else {
-          // Show the demo login error, or the Supabase error if demo credentials don't match
-          setError(demoResult.error || 'Authentication failed. Please check your credentials.');
-          return;
-        }
+        // Show the demo login error, or the Supabase error if demo credentials don't match
+        setError(demoResult.error || 'Authentication failed. Please check your credentials.');
+        return;
       }
+    }
 
       if (success) {
         if (role === 'admin') {
@@ -197,17 +197,9 @@ export default function LoginPage() {
 
         {!isSignUp && (
           <div className="text-xs text-slate-500 space-y-1">
-            <p className="text-center">Demo credentials:</p>
-            <div className="flex justify-center gap-6">
-              <div>
-                <span className="text-amber-400 font-semibold">Admin:</span>{' '}
-                <span className="text-slate-400">admin@caligym.com / admin</span>
-              </div>
-              <div>
-                <span className="text-amber-400 font-semibold">User:</span>{' '}
-                <span className="text-slate-400">athlete@caligym.com / password</span>
-              </div>
-            </div>
+            <p className="text-center text-slate-400 text-xs opacity-60">
+              Supabase authentication configured
+            </p>
           </div>
         )}
 

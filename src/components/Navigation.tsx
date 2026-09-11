@@ -33,7 +33,7 @@ export const Navigation: React.FC = () => {
 
   const isAuthenticated = isLoggedIn || !!authUser;
   const role = profile.role;
-  const isAdmin = role === 'admin';
+  const currentLevel = profile.levels.overall;
 
   const publicNavItems = [
     { href: '/', label: 'Home', icon: Dumbbell },
@@ -45,19 +45,12 @@ export const Navigation: React.FC = () => {
     { href: '/dashboard', label: 'Dashboard', icon: Dumbbell },
     { href: '/workout', label: 'Workout Today', icon: Zap },
     { href: '/skill-tree', label: 'Skills Roadmap', icon: Map },
-  ];
-
-  const adminNavItems = [
-    { href: '/admin-dashboard', label: 'Admin Dashboard', icon: ShieldCheck },
-    { href: '/workout', label: 'Workout Today', icon: Zap },
-    { href: '/skill-tree', label: 'Skills Roadmap', icon: Map },
+    { href: '/profile', label: 'Profile', icon: User },
   ];
 
   const currentNavItems = isAuthenticated
-    ? (isAdmin ? adminNavItems : userNavItems)
+    ? userNavItems
     : publicNavItems;
-
-  const currentLevel = profile.levels.overall;
 
   const handleLogout = async () => {
     await signOut();
@@ -127,7 +120,7 @@ export const Navigation: React.FC = () => {
                     className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-amber-500/30 transition-all"
                   >
                     <User className="w-4 h-4" />
-                    <span className="hidden sm:inline">{isAdmin ? 'Admin' : profile.username}</span>
+                    <span className="hidden sm:inline">{profile.username}</span>
                     <ChevronDown className={`w-3.5 h-3.5 transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`} />
                   </button>
 
@@ -142,25 +135,6 @@ export const Navigation: React.FC = () => {
                           <Settings className="w-4 h-4" />
                           <span>Profile Settings</span>
                         </Link>
-
-                        {isAdmin && (
-                          <Link
-                            href="/admin-dashboard"
-                            onClick={() => setUserDropdownOpen(false)}
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-rose-400 hover:bg-rose-500/10 transition-colors border-t border-slate-800"
-                          >
-                            <ShieldCheck className="w-4 h-4" />
-                            <span>Admin Dashboard</span>
-                          </Link>
-                        )}
-
-                        <button
-                          onClick={handleLogout}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-400 hover:bg-slate-800 hover:text-rose-400 transition-colors border-t border-slate-800"
-                        >
-                          <LogOut className="w-4 h-4" />
-                          <span>Log Out</span>
-                        </button>
                       </div>
                     </div>
                   )}
