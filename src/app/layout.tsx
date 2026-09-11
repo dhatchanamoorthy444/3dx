@@ -16,8 +16,14 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CaliGym — Complete Calisthenics Learning & Progression Platform",
-  description: "Personal calisthenics roadmap taking athletes from beginner fundamentals to advanced skills like Muscle-Up, Handstand, Front Lever, and Planche.",
+  title: "CaliGym — Calisthenics Workout Programs & Bodyweight Training for Beginners",
+  description: "Master your bodyweight with online fitness coaching and home workouts with no equipment. Take a 2-minute assessment, unlock your Level 1-8 roadmap, and progress to Muscle-Up, Handstand, Front Lever and Planche.",
+  keywords: ["calisthenics workout programs", "bodyweight training for beginners", "online fitness coaching", "home workouts no equipment", "planche progression", "muscle up training"],
+  openGraph: {
+    title: "CaliGym — Master Your Bodyweight. Build Lasting Strength.",
+    description: "Ditch heavy weights and gym memberships. Get your Level 1-8 roadmap and daily bodyweight plan.",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
