@@ -7,6 +7,7 @@ import { useCalisthenics } from '../context/CalisthenicsContext';
 import { useAuth } from '../context/AuthContext';
 import { Logo } from './Logo';
 import { ThemeToggle } from './ThemeToggle';
+import { NeonThemePicker } from './NeonThemePicker';
 import {
   Dumbbell,
   Map,
@@ -150,6 +151,7 @@ export const Navigation: React.FC = () => {
             )}
 
             {/* Theme Toggle */}
+            <NeonThemePicker />
             <ThemeToggle className="p-2 rounded-xl hover:bg-slate-900 hover:text-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
 
             {/* Mobile Menu Button */}

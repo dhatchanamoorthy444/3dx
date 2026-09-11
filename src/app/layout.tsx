@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { CalisthenicsProvider } from "../context/CalisthenicsContext";
 import { AuthProvider } from "../context/AuthContext";
+import { NeonProvider } from "../context/NeonContext";
 import { Navigation } from "../components/Navigation";
 
 const geistSans = Geist({
@@ -39,8 +40,10 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-slate-950 text-slate-100 font-sans">
         <AuthProvider>
           <CalisthenicsProvider>
-            <Navigation />
-            <main className="flex-1">{children}</main>
+            <NeonProvider>
+              <Navigation />
+              <main className="flex-1">{children}</main>
+            </NeonProvider>
           </CalisthenicsProvider>
         </AuthProvider>
       </body>

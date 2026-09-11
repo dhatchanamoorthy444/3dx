@@ -4,8 +4,12 @@ import React from 'react';
 import Link from 'next/link';
 import { ArrowRight, Map, Sparkles } from 'lucide-react';
 import { WorkoutMascot } from '../WorkoutMascot';
+import { useNeon } from '../../context/NeonContext';
+import { NEON_THEMES } from '../../data/neonThemes';
 
 export const LandingHero: React.FC = () => {
+  const { themeId, setThemeId } = useNeon();
+  const preview = NEON_THEMES.slice(0, 10);
   return (
     <section className="relative min-h-[92vh] flex items-center px-4 sm:px-6 lg:px-8 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-amber-950/20" />
@@ -21,8 +25,8 @@ export const LandingHero: React.FC = () => {
           <h1 className="text-5xl sm:text-6xl xl:text-7xl font-extrabold tracking-tight leading-[1.02] mb-6">
             <span className="text-white block">Master Your</span>
             <span className="text-white block">Bodyweight.</span>
-            <span className="text-[#CCFF00] block">Build Lasting</span>
-            <span className="text-[#CCFF00] block">Strength.</span>
+            <span className="neon-glow-text block">Build Lasting</span>
+            <span className="neon-glow-text block">Strength.</span>
           </h1>
           <p className="text-lg text-slate-300 max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed">
             Ditch heavy weights and expensive memberships. CaliGym turns a 2-minute
@@ -84,6 +88,25 @@ export const LandingHero: React.FC = () => {
               <Link href="/assessment" className="mt-6 w-full px-5 py-3 rounded-xl bg-amber-500 text-slate-950 font-black text-sm hover:bg-amber-400 transition-colors">
                 Take 2-Min Assessment
               </Link>
+              <div className="mt-6 w-full">
+                <p className="text-[11px] font-black uppercase tracking-widest text-slate-500 mb-2">
+                  Try the neon theme — tap a color
+                </p>
+                <div className="flex items-center justify-center gap-2 flex-wrap">
+                  {preview.map((t) => (
+                    <button
+                      key={t.id}
+                      onClick={() => setThemeId(t.id)}
+                      title={`${t.id}. ${t.name}`}
+                      aria-label={`Use ${t.name} theme`}
+                      className={`h-6 flex-1 min-w-8 rounded-full transition-transform hover:scale-110 ${
+                        t.id === themeId ? 'ring-2 ring-white scale-110' : ''
+                      }`}
+                      style={{ background: t.neon, boxShadow: `0 0 10px ${t.glow}` }}
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>

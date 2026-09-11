@@ -1,18 +1,18 @@
 @import "tailwindcss";
 
-/* Custom Theme - Obsidian Black + Neon Volt */
+/* Custom Theme - Obsidian Black + Neon Volt fallback (dynamic neon applied via CSS vars below) */
 @theme {
-  --color-amber-400: #CCFF00;
-  --color-amber-500: #B8E600;
-  --color-amber-600: #9FCC00;
-  --color-orange-500: #CCFF00;
-  --color-orange-400: #D9FF33;
-  --color-emerald-400: #CCFF00;
-  --color-lime-400: #CCFF00;
-  --color-lime-500: #B8E600;
-  --color-volt-400: #CCFF00;
-  --color-volt-500: #B8E600;
-  --color-volt-600: #9FCC00;
+  --color-amber-400: #FAFF00;
+  --color-amber-500: #E1E600;
+  --color-amber-600: #BFC400;
+  --color-orange-500: #E1E600;
+  --color-orange-400: #FAFF00;
+  --color-emerald-400: #FAFF00;
+  --color-lime-400: #FAFF00;
+  --color-lime-500: #E1E600;
+  --color-volt-400: #FAFF00;
+  --color-volt-500: #E1E600;
+  --color-volt-600: #BFC400;
 }
 
 /* Premium OS-style Calisthenics App UI
@@ -23,25 +23,32 @@
 
 /* CSS Variables for CaliGym dark theme design tokens */
 :root {
+  /* Dynamic neon accent (LED jacket chart, default: 5. lemon yellow) */
+  --neon: #FAFF00;
+  --neon-hover: #E1E600;
+  --neon-active: #BFC400;
+  --neon-glow: rgba(250, 255, 0, 0.32);
+  --neon-ink: #171700;
+
   /* Core background layers */
   --bg-main: #0F172A;
   --bg-card: #1E293B;
   --background-primary: #0F172A;
   --background-secondary: #1E293B;
   --background-tertiary: #0F172A;
-  
+
   /* Surface layers */
   --surface-primary: #1E293B;
   --surface-secondary: #1E293B;
   --surface-overlay: #0F172A;
-  
-  /* Accent colors */
-  --accent-primary: #CCFF00;
-  --accent-primary-hover: #B8E600;
-  --accent-primary-active: #9FCC00;
+
+  /* Accent colors (follow active neon theme) */
+  --accent-primary: var(--neon);
+  --accent-primary-hover: var(--neon-hover);
+  --accent-primary-active: var(--neon-active);
   --accent-secondary: #22C55E;
   --accent-tertiary: #22C55E;
-  --accent-warning: #CCFF00;
+  --accent-warning: var(--neon);
   
   /* Text colors */
   --text-primary: #FFFFFF;
@@ -542,6 +549,61 @@ html, body {
 .space-y-2 > * + * {
   margin-top: 8px;
 }
+
+/* Neon theme helpers (LED jacket chart) */
+.text-neon {
+  color: var(--neon);
+}
+
+.bg-neon {
+  background-color: var(--neon);
+}
+
+.border-neon {
+  border-color: var(--neon);
+}
+
+.neon-glow-text {
+  color: var(--neon);
+  text-shadow: 0 0 8px var(--neon-glow), 0 0 24px var(--neon-glow);
+}
+
+.neon-glow-bar {
+  background-color: var(--neon);
+  box-shadow: 0 0 10px var(--neon-glow), 0 0 28px var(--neon-glow);
+}
+
+.neon-ring {
+  box-shadow: 0 0 0 1px var(--neon), 0 0 18px var(--neon-glow);
+}
+
+/*
+ * Dynamic neon overrides: every Tailwind amber/orange/emerald/lime/volt
+ * accent class follows the active LED color via --neon at runtime.
+ * Important: only add entries for classes actually used in the codebase,
+ * and keep them after Tailwind's generated utilities.
+ */
+.text-amber-400 { color: var(--neon) !important; }
+.bg-amber-500 { background-color: var(--neon) !important; }
+.bg-amber-400 { background-color: var(--neon-hover) !important; }
+.hover\:bg-amber-400:hover { background-color: var(--neon-hover) !important; }
+.hover\:bg-amber-500:hover { background-color: var(--neon-hover) !important; }
+.text-orange-500, .text-orange-400 { color: var(--neon) !important; }
+.text-emerald-400, .text-lime-400 { color: var(--neon) !important; }
+.bg-orange-500 { background-color: var(--neon-hover) !important; }
+.bg-emerald-400 { background-color: var(--neon) !important; }
+.fill-orange-400\/30 { fill: var(--neon) !important; }
+.border-amber-500\/30, .border-amber-500 { border-color: var(--neon) !important; }
+.border-amber-500\/20 { border-color: var(--neon) !important; }
+.bg-amber-500\/10 { background-color: var(--neon) !important; }
+.bg-amber-500\/15 { background-color: var(--neon) !important; }
+.bg-amber-500\/20 { background-color: var(--neon) !important; }
+.bg-amber-500\/5 { background-color: var(--neon) !important; }
+.from-amber-500 { --tw-gradient-from: var(--neon) !important; }
+.to-orange-500 { --tw-gradient-to: var(--neon-hover) !important; }
+.to-amber-950\/20, .to-amber-950\/30 { --tw-gradient-to: var(--neon-glow) !important; }
+.shadow-amber-500\/30, .shadow-amber-500\/25, .shadow-amber-500\/20 { --tw-shadow-color: var(--neon-glow) !important; }
+.ring-amber-500\/50 { --tw-ring-color: var(--neon-glow) !important; }
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
