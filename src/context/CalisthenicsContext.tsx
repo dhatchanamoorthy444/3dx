@@ -23,7 +23,7 @@ import { EXERCISES_DATABASE as INITIAL_EXERCISES } from '../data/exercises';
 import { SKILL_TREE as INITIAL_SKILLS } from '../data/skills';
 import { INITIAL_FOODS_DATABASE } from '../data/foods';
 import { useAuth } from './AuthContext';
-import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabaseClient';
+import { getSupabaseBrowserClient as getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase-browser';
 import confetti from 'canvas-confetti';
 
 // Initialize nutrition state
