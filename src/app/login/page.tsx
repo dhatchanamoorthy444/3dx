@@ -46,13 +46,14 @@ export default function LoginPage() {
       success = true;
       role = signInResult.role || 'user';
     } else {
-      // If Supabase fails, try demo login
+      // If Supabase fails (e.g., not configured), try demo login
       const demoResult = demoLogin(email, password);
       if (demoResult.success) {
         success = true;
         role = 'admin';
       } else {
-        setError(signInResult.error || demoResult.error || 'Authentication failed.');
+        // Show the demo login error, or the Supabase error if demo credentials don't match
+        setError(demoResult.error || 'Authentication failed. Please check your credentials.');
         return;
       }
     }
@@ -176,6 +177,22 @@ export default function LoginPage() {
             <span>{loading ? 'Please wait...' : (isSignUp ? 'Create Account' : 'Sign In')}</span>
           </button>
         </form>
+
+        {!isSignUp && (
+          <div className="text-xs text-slate-500 space-y-1">
+            <p className="text-center">Demo credentials:</p>
+            <div className="flex justify-center gap-6">
+              <div>
+                <span className="text-amber-400 font-semibold">Admin:</span>{' '}
+                <span className="text-slate-400">admin@caligym.com / admin</span>
+              </div>
+              <div>
+                <span className="text-amber-400 font-semibold">User:</span>{' '}
+                <span className="text-slate-400">athlete@caligym.com / password</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="text-center text-xs text-slate-400 pt-2 border-t border-slate-800">
           {isSignUp ? 'Already have an account? ' : "Don't have an account? "}

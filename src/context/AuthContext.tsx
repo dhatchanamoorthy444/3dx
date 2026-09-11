@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, createContext, useContext } from 'react';
-import { getSupabaseClient } from '@/lib/supabaseClient';
+import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabaseClient';
 
 function setSessionCookie(role: string) {
   if (typeof document !== 'undefined') {
@@ -115,6 +115,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = async (emailOrUsername: string, password: string) => {
     try {
       setLoading(true);
+      
+      // Check if Supabase is actually configured with real credentials
+      if (!isSupabaseConfigured()) {
+        return { success: false, error: 'Supabase not configured' };
+      }
       
       // Try email login first
       let { data, error } = await getSupabaseClient().auth.signInWithPassword({
