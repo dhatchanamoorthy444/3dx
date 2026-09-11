@@ -7,6 +7,8 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   username TEXT UNIQUE,
   email TEXT UNIQUE NOT NULL,
   role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin')),
+  status TEXT DEFAULT 'active' CHECK (status IN ('active', 'suspended')),
+  password_hash TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()) NOT NULL
 );
 

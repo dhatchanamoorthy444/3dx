@@ -23,7 +23,36 @@ import { EXERCISES_DATABASE as INITIAL_EXERCISES } from '../data/exercises';
 import { SKILL_TREE as INITIAL_SKILLS } from '../data/skills';
 import { INITIAL_FOODS_DATABASE } from '../data/foods';
 import { useAuth } from './AuthContext';
+import { getSupabaseClient } from '@/lib/supabaseClient';
 import confetti from 'canvas-confetti';
+
+// Initialize nutrition state
+function createInitialNutrition(): DailyNutritionLog {
+  const todayStr = new Date().toISOString().split('T')[0];
+  const initialMeals: MealLogItem[] = INITIAL_FOODS_DATABASE.slice(0, 5).map(f => ({
+    foodId: f.id,
+    foodName: f.name,
+    category: f.category,
+    calories: f.calories,
+    proteinG: f.proteinG,
+    carbsG: f.carbsG,
+    fatG: f.fatG,
+    eaten: false
+  }));
+
+  return {
+    date: todayStr,
+    targetCalories: 2300,
+    targetProteinG: 130,
+    targetCarbsG: 260,
+    targetFatG: 70,
+    consumedCalories: 0,
+    consumedProteinG: 0,
+    consumedCarbsG: 0,
+    consumedFatG: 0,
+    meals: initialMeals
+  };
+}
 
 interface CalisthenicsContextType {
   profile: UserProfile;
@@ -134,13 +163,13 @@ const DEFAULT_ASSESSMENT: UserAssessment = {
 };
 
 const DEFAULT_PROFILE: UserProfile = {
-  id: 'usr_demo_1',
-  username: 'athlete123',
-  email: 'athlete@caligym.com',
-  name: 'Athlete',
-  role: 'admin',
-  xp: 450,
-  streak: 3,
+  id: '',
+  username: '',
+  email: '',
+  name: '',
+  role: 'user',
+  xp: 0,
+  streak: 0,
   lastWorkoutDate: undefined,
   assessment: DEFAULT_ASSESSMENT,
   levels: {
@@ -152,11 +181,8 @@ const DEFAULT_PROFILE: UserProfile = {
     skill: 1,
     mobility: 1
   },
-  unlockedSkillIds: ['skill_pushup_mastery', 'skill_plank_foundation'],
-  personalRecords: {
-    standard_pushup: { exerciseId: 'standard_pushup', exerciseName: 'Standard Push-up', recordValue: 12, unit: 'reps', date: new Date().toISOString() },
-    plank_hold: { exerciseId: 'plank_hold', exerciseName: 'Forearm Plank', recordValue: 50, unit: 'seconds', date: new Date().toISOString() }
-  },
+  unlockedSkillIds: [],
+  personalRecords: {},
   workoutHistory: [],
   nutritionHistory: [],
   fatigueLevel: 'low'
@@ -217,17 +243,59 @@ export const CalisthenicsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [currentUser, setCurrentUser] = useState<{ username: string; email: string; role: string } | null>(null);
   const [botDetected, setBotDetected] = useState(false);
 
+  // Load full profile from Supabase when authUser changes
   useEffect(() => {
     if (authUser) {
-      setProfile(prev => ({
-        ...prev,
-        role: authUser.role,
-        id: authUser.id,
-        username: authUser.username,
-        email: authUser.email
-      }));
-      setIsLoggedIn(true);
-      setCurrentUser({ username: authUser.username, email: authUser.email, role: authUser.role });
+      const loadProfile = async () => {
+        try {
+          const { data: profileData } = await getSupabaseClient()
+            .from('profiles')
+            .select('*')
+            .eq('id', authUser.id)
+            .single();
+          
+          if (profileData) {
+            setProfile({
+              id: profileData.id,
+              username: profileData.username,
+              email: profileData.email,
+              name: profileData.name || profileData.username,
+              role: profileData.role || 'user',
+              xp: profileData.xp || 0,
+              streak: profileData.streak || 0,
+              lastWorkoutDate: profileData.last_workout_date,
+              assessment: profileData.assessment || DEFAULT_ASSESSMENT,
+              levels: profileData.levels || {
+                overall: 1, push: 1, pull: 1, core: 1, legs: 1, skill: 1, mobility: 1
+              },
+              unlockedSkillIds: profileData.unlocked_skill_ids || [],
+              personalRecords: profileData.personal_records || {},
+              workoutHistory: profileData.workout_history || [],
+              nutritionHistory: profileData.nutrition_history || [],
+              fatigueLevel: profileData.fatigue_level || 'low'
+            });
+          }
+        } catch (error) {
+          console.error('Failed to load profile:', error);
+          // Fallback to authUser data
+          setProfile(prev => ({
+            ...prev,
+            role: authUser.role,
+            id: authUser.id,
+            username: authUser.username,
+            email: authUser.email
+          }));
+        }
+        
+        setIsLoggedIn(true);
+        setCurrentUser({ username: authUser.username, email: authUser.email, role: authUser.role });
+      };
+      
+      loadProfile();
+    } else {
+      setProfile(DEFAULT_PROFILE);
+      setIsLoggedIn(false);
+      setCurrentUser(null);
     }
   }, [authUser]);
 
@@ -254,7 +322,7 @@ export const CalisthenicsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       consumedProteinG: 0,
       consumedCarbsG: 0,
       consumedFatG: 0,
-      meals: initialMeals
+meals: initialMeals
     };
   });
 

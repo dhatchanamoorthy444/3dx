@@ -28,13 +28,22 @@ export default function LoginPage() {
     let result;
     if (isSignUp) {
       result = await signUp(email, password, username || email.split('@')[0]);
+      if (result.success) {
+        router.push('/dashboard');
+      }
     } else {
       result = await signIn(email, password);
+      if (result.success) {
+        // Redirect based on role
+        if (result.role === 'admin') {
+          router.push('/admin-dashboard');
+        } else {
+          router.push('/dashboard');
+        }
+      }
     }
 
-    if (result.success) {
-      router.push('/');
-    } else {
+    if (!result.success) {
       setError(result.error || 'Authentication failed.');
     }
   };

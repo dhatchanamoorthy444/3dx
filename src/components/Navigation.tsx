@@ -36,19 +36,19 @@ export const Navigation: React.FC = () => {
   const isAdmin = role === 'admin';
 
   const publicNavItems = [
-    { href: '/', label: 'Dashboard', icon: Dumbbell },
+    { href: '/', label: 'Home', icon: Dumbbell },
     { href: '/skill-tree', label: 'Programs', icon: Map },
     { href: '/exercises', label: 'Exercises', icon: BookOpen },
   ];
 
   const userNavItems = [
-    { href: '/', label: 'Dashboard', icon: Dumbbell },
+    { href: '/dashboard', label: 'Dashboard', icon: Dumbbell },
     { href: '/workout', label: 'Workout Today', icon: Zap },
     { href: '/skill-tree', label: 'Skills Roadmap', icon: Map },
   ];
 
   const adminNavItems = [
-    { href: '/', label: 'Dashboard', icon: Dumbbell },
+    { href: '/admin-dashboard', label: 'Admin Dashboard', icon: ShieldCheck },
     { href: '/workout', label: 'Workout Today', icon: Zap },
     { href: '/skill-tree', label: 'Skills Roadmap', icon: Map },
   ];
@@ -72,11 +72,7 @@ export const Navigation: React.FC = () => {
           
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
-            <Logo />
-            <span className="font-extrabold text-xl tracking-tight hidden sm:block">
-              <span className="text-white">CALI</span>
-              <span className="text-amber-500">GYM</span>
-            </span>
+            <Logo showText={false} />
           </Link>
 
           {/* Desktop Navigation */}
@@ -149,12 +145,12 @@ export const Navigation: React.FC = () => {
 
                         {isAdmin && (
                           <Link
-                            href="/admin"
+                            href="/admin-dashboard"
                             onClick={() => setUserDropdownOpen(false)}
                             className="flex items-center gap-3 px-4 py-2.5 text-sm text-rose-400 hover:bg-rose-500/10 transition-colors border-t border-slate-800"
                           >
                             <ShieldCheck className="w-4 h-4" />
-                            <span>Admin Panel</span>
+                            <span>Admin Dashboard</span>
                           </Link>
                         )}
 

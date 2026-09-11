@@ -37,7 +37,7 @@ export interface WorkoutLog {
 interface AuthContextType {
   user: UserProfile | null;
   loading: boolean;
-  signIn: (emailOrUsername: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signIn: (emailOrUsername: string, password: string) => Promise<{ success: boolean; error?: string; role?: 'user' | 'admin' }>;
   signUp: (email: string, password: string, username: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
@@ -142,7 +142,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, error: error.message };
       }
 
-      return { success: true };
+      // Fetch profile to get role
+      if (data?.user) {
+        const { data: profile } = await getSupabaseClient()
+          .from('profiles')
+          .select('role')
+          .eq('id', data.user.id)
+          .single();
+        
+        return { success: true, role: profile?.role || 'user' };
+      }
+
+      return { success: true, role: 'user' };
     } catch (error) {
       return { success: false, error: 'An unexpected error occurred' };
     } finally {
