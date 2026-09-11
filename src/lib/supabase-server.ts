@@ -6,11 +6,20 @@ function env(name: string): string {
   return (process.env[name] || '').trim();
 }
 
+/** Recognizes known placeholder/demo credential values so they are never used as real keys. */
+function isPlaceholderCredential(value: string): boolean {
+  const v = (value || '').trim().toLowerCase();
+  if (!v) return true;
+  const tokens = ['your-project', 'your-anon-key', 'your_gemini_api_key', 'placeholder', 'example'];
+  if (tokens.some((t) => v.includes(t))) return true;
+  return v.length < 10;
+}
+
 /** Server-side Supabase client bound to request cookies (reads/writes session). */
 export async function getSupabaseServerClient(): Promise<SupabaseClient> {
   const url = env('NEXT_PUBLIC_SUPABASE_URL');
   const key = env('NEXT_PUBLIC_SUPABASE_ANON_KEY') || env('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY');
-  if (!url || !key) {
+  if (!url || !key || isPlaceholderCredential(url) || isPlaceholderCredential(key)) {
     throw new Error(
       'Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.'
     );
@@ -35,7 +44,7 @@ export async function getSupabaseServerClient(): Promise<SupabaseClient> {
 export function getSupabaseServiceClient(): SupabaseClient {
   const url = env('NEXT_PUBLIC_SUPABASE_URL');
   const serviceKey = env('SUPABASE_SERVICE_ROLE_KEY');
-  if (!url || !serviceKey) {
+  if (!url || !serviceKey || isPlaceholderCredential(url) || isPlaceholderCredential(serviceKey)) {
     throw new Error(
       'Supabase service role is not configured. Set SUPABASE_SERVICE_ROLE_KEY (server-side only).'
     );

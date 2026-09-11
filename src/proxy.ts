@@ -10,6 +10,14 @@ import type { NextRequest } from 'next/server';
  *   skipped so the site stays navigable. Production (Vercel) always
  *   defines NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY.
  */
+function isPlaceholderCredential(value: string): boolean {
+  const v = (value || '').trim().toLowerCase();
+  if (!v) return true;
+  const tokens = ['your-project', 'your-anon-key', 'your_gemini_api_key', 'placeholder', 'example'];
+  if (tokens.some((t) => v.includes(t))) return true;
+  return v.length < 10;
+}
+
 function isSupabaseConfigured(): boolean {
   const url = (process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim();
   const key = (
@@ -17,7 +25,9 @@ function isSupabaseConfigured(): boolean {
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
     ''
   ).trim();
-  return Boolean(url && url.startsWith('http') && key);
+  return Boolean(
+    url && url.startsWith('http') && key && !isPlaceholderCredential(url) && !isPlaceholderCredential(key)
+  );
 }
 
 function hasSessionCookie(request: NextRequest): boolean {
