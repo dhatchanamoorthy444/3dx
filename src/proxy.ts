@@ -35,7 +35,10 @@ function hasSessionCookie(request: NextRequest): boolean {
     const cookies = request.cookies;
     if (!cookies || typeof cookies.getAll !== 'function') return false;
     for (const cookie of cookies.getAll()) {
-      if (cookie.name.startsWith('sb-') && cookie.name.endsWith('-auth-token')) {
+      // Supabase stores the session in `sb-<ref>-auth-token`, chunked as
+      // `sb-<ref>-auth-token.0`, `.1`, ... when the JWT is large — so match
+      // on inclusion, not on an exact `-auth-token` suffix.
+      if (cookie.name.startsWith('sb-') && cookie.name.includes('-auth-token')) {
         return true;
       }
     }
@@ -76,6 +79,22 @@ export function proxy(request: NextRequest) {
   return NextResponse.next();
 }
 
+// Both forms are accepted by Next.js 16 (named `proxy` or default export);
+// provide both so the guard keeps working regardless of which convention the
+// deployed Next version resolves.
+export default proxy;
+
 export const config = {
-  matcher: ['/dashboard/:path*', '/workout/:path*', '/profile/:path*', '/login/:path*', '/register/:path*'],
+  matcher: [
+    '/dashboard',
+    '/dashboard/:path*',
+    '/workout',
+    '/workout/:path*',
+    '/profile',
+    '/profile/:path*',
+    '/login',
+    '/login/:path*',
+    '/register',
+    '/register/:path*',
+  ],
 };

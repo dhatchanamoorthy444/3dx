@@ -1,18 +1,36 @@
 @import "tailwindcss";
 
-/* Custom Theme - Obsidian Black + Neon Volt fallback (dynamic neon applied via CSS vars below) */
-@theme {
-  --color-amber-400: #FAFF00;
-  --color-amber-500: #E1E600;
-  --color-amber-600: #BFC400;
-  --color-orange-500: #E1E600;
-  --color-orange-400: #FAFF00;
-  --color-emerald-400: #FAFF00;
-  --color-lime-400: #FAFF00;
-  --color-lime-500: #E1E600;
-  --color-volt-400: #FAFF00;
-  --color-volt-500: #E1E600;
-  --color-volt-600: #BFC400;
+/* Custom Theme - Obsidian Black + Neon Volt fallback (dynamic neon applied via CSS vars below)
+ *
+ * Accent strategy (Tailwind v4): the app's accent color is expressed with
+ * amber-* (primary), orange-* and emerald-* (secondary) utilities across ~70
+ * class variants. Instead of chasing those strings with an `!important`
+ * allowlist, the tokens themselves reference the runtime neon variables, so
+ * every variant — including opacity modifiers (/5 … /50), gradients
+ * (from-/via-/to-), rings, shadows and fills — follows the active
+ * NeonContext theme automatically. `NeonContext.applyNeonTheme()` sets
+ * --neon/--neon-hover/--neon-active/--neon-glow on :root; these tokens only
+ * forward them. Keep the amber-400/500/600 ramps coherent (400 = lightest).
+ */
+@theme inline {
+  --color-amber-300: var(--neon);
+  --color-amber-400: var(--neon);
+  --color-amber-500: var(--neon-hover);
+  --color-amber-600: var(--neon-active);
+  --color-amber-950: var(--neon-active);
+  --color-orange-300: var(--neon);
+  --color-orange-400: var(--neon);
+  --color-orange-500: var(--neon-hover);
+  --color-orange-600: var(--neon-active);
+  --color-emerald-300: var(--neon);
+  --color-emerald-400: var(--neon);
+  --color-emerald-500: var(--neon-hover);
+  --color-lime-300: var(--neon);
+  --color-lime-400: var(--neon);
+  --color-lime-500: var(--neon-hover);
+  --color-volt-400: var(--neon);
+  --color-volt-500: var(--neon-hover);
+  --color-volt-600: var(--neon-active);
 }
 
 /* Premium OS-style Calisthenics App UI
@@ -550,7 +568,8 @@ html, body {
   margin-top: 8px;
 }
 
-/* Neon theme helpers (LED jacket chart) */
+/* Semantic neon helpers (LED jacket chart) — prefer these in new code over
+ * raw amber/orange/emerald utilities so intent stays explicit. */
 .text-neon {
   color: var(--neon);
 }
@@ -576,34 +595,6 @@ html, body {
 .neon-ring {
   box-shadow: 0 0 0 1px var(--neon), 0 0 18px var(--neon-glow);
 }
-
-/*
- * Dynamic neon overrides: every Tailwind amber/orange/emerald/lime/volt
- * accent class follows the active LED color via --neon at runtime.
- * Important: only add entries for classes actually used in the codebase,
- * and keep them after Tailwind's generated utilities.
- */
-.text-amber-400 { color: var(--neon) !important; }
-.bg-amber-500 { background-color: var(--neon) !important; }
-.bg-amber-400 { background-color: var(--neon-hover) !important; }
-.hover\:bg-amber-400:hover { background-color: var(--neon-hover) !important; }
-.hover\:bg-amber-500:hover { background-color: var(--neon-hover) !important; }
-.text-orange-500, .text-orange-400 { color: var(--neon) !important; }
-.text-emerald-400, .text-lime-400 { color: var(--neon) !important; }
-.bg-orange-500 { background-color: var(--neon-hover) !important; }
-.bg-emerald-400 { background-color: var(--neon) !important; }
-.fill-orange-400\/30 { fill: var(--neon) !important; }
-.border-amber-500\/30, .border-amber-500 { border-color: var(--neon) !important; }
-.border-amber-500\/20 { border-color: var(--neon) !important; }
-.bg-amber-500\/10 { background-color: var(--neon) !important; }
-.bg-amber-500\/15 { background-color: var(--neon) !important; }
-.bg-amber-500\/20 { background-color: var(--neon) !important; }
-.bg-amber-500\/5 { background-color: var(--neon) !important; }
-.from-amber-500 { --tw-gradient-from: var(--neon) !important; }
-.to-orange-500 { --tw-gradient-to: var(--neon-hover) !important; }
-.to-amber-950\/20, .to-amber-950\/30 { --tw-gradient-to: var(--neon-glow) !important; }
-.shadow-amber-500\/30, .shadow-amber-500\/25, .shadow-amber-500\/20 { --tw-shadow-color: var(--neon-glow) !important; }
-.ring-amber-500\/50 { --tw-ring-color: var(--neon-glow) !important; }
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {

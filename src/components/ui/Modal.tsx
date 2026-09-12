@@ -1,8 +1,9 @@
 'use client';
 
-import React, { forwardRef, useEffect, Fragment } from 'react';
+import React, { forwardRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
+import { Button } from './Button';
 
 export interface ModalProps extends React.HTMLAttributes<HTMLDivElement> {
   open: boolean;
@@ -270,5 +271,3 @@ export const AlertDialog: React.FC<AlertDialogProps> = ({
     </Modal>
   );
 };
-
-import { Button } from './Button';

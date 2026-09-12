@@ -286,13 +286,96 @@ CREATE TABLE IF NOT EXISTS public.notifications (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 27. WORKOUT LOGS (used by AuthContext.saveWorkout / getWorkout / getWorkouts)
+CREATE TABLE IF NOT EXISTS public.workout_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  date DATE NOT NULL,
+  workout_data JSONB NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(user_id, date)
+);
+
 -- ROW LEVEL SECURITY (RLS) POLICIES
+-- NOTE: all policies are DROPped first so this file is safe to re-run
+-- against an existing project (diff the live DB before applying).
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.assessments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.personal_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.workout_logs ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Public Profiles Read" ON public.profiles;
 CREATE POLICY "Public Profiles Read" ON public.profiles FOR SELECT USING (true);
-CREATE POLICY "Users Update Own Profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
 
-CREATE POLICY "Users Manage Own Assessment" ON public.assessments FOR ALL USING (auth.uid() = user_id);
-CREATE POLICY "Users Manage Own Personal Records" ON public.personal_records FOR ALL USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users Insert Own Profile" ON public.profiles;
+CREATE POLICY "Users Insert Own Profile" ON public.profiles
+  FOR INSERT WITH CHECK (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Users Update Own Profile" ON public.profiles;
+CREATE POLICY "Users Update Own Profile" ON public.profiles
+  FOR UPDATE USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Users Manage Own Assessment" ON public.assessments;
+CREATE POLICY "Users Manage Own Assessment" ON public.assessments FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users Manage Own Personal Records" ON public.personal_records;
+CREATE POLICY "Users Manage Own Personal Records" ON public.personal_records FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users Select Own Workout Logs" ON public.workout_logs;
+CREATE POLICY "Users Select Own Workout Logs" ON public.workout_logs FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users Insert Own Workout Logs" ON public.workout_logs;
+CREATE POLICY "Users Insert Own Workout Logs" ON public.workout_logs FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users Update Own Workout Logs" ON public.workout_logs;
+CREATE POLICY "Users Update Own Workout Logs" ON public.workout_logs FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users Delete Own Workout Logs" ON public.workout_logs;
+CREATE POLICY "Users Delete Own Workout Logs" ON public.workout_logs FOR DELETE USING (auth.uid() = user_id);
+
+-- Auto-create a profiles row on signup so a client-side RLS failure can
+-- never leave an auth user without a profile (the re-login break).
+-- The app ALSO upserts the profile client-side (username/name/avatar);
+-- this trigger is the safety net with sensible defaults.
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, email, username, name, role)
+  VALUES (
+    NEW.id,
+    NEW.email,
+    COALESCE(
+      NULLIF(NEW.raw_user_meta_data->>'username', ''),
+      split_part(NEW.email, '@', 1)
+    ),
+    COALESCE(
+      NULLIF(NEW.raw_user_meta_data->>'name', ''),
+      NULLIF(NEW.raw_user_meta_data->>'username', ''),
+      split_part(NEW.email, '@', 1)
+    ),
+    'user'
+  )
+  ON CONFLICT (id) DO NOTHING;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Keep workout_logs.updated_at fresh
+CREATE OR REPLACE FUNCTION public.update_workout_logs_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS update_workout_logs_updated_at ON public.workout_logs;
+CREATE TRIGGER update_workout_logs_updated_at
+  BEFORE UPDATE ON public.workout_logs
+  FOR EACH ROW EXECUTE FUNCTION public.update_workout_logs_updated_at();

@@ -31,6 +31,31 @@ export function isValidUsername(value: string): boolean {
   return /^[a-z0-9_]{3,20}$/.test(value);
 }
 
+/**
+ * Postgres "insufficient_privilege" — the signature of a Row Level Security
+ * policy rejection (e.g. missing INSERT policy on profiles). Surfaced as a
+ * distinct message so future policy misconfigurations are diagnosable
+ * instead of hiding behind the generic catch-all.
+ */
+function isRlsPolicyError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const code = (error as { code?: unknown }).code;
+  if (code === '42501') return true;
+  const message = String((error as { message?: unknown }).message ?? '').toLowerCase();
+  return (
+    message.includes('row-level security') ||
+    message.includes('row level security') ||
+    (message.includes('violates') && message.includes('policy'))
+  );
+}
+
+function profileSaveErrorMessage(error: unknown): string {
+  if (isRlsPolicyError(error)) {
+    return 'Account was created but saving your profile was blocked by a database permission (RLS policy). Please contact support — do not register again.';
+  }
+  return 'Account was created but the profile could not be saved. Please try logging in, or contact support.';
+}
+
 function friendlyAuthError(message: string): string {
   const m = (message || '').toLowerCase();
   if (m.includes('invalid login credentials') || m.includes('invalid email or password')) return 'Invalid email or password.';
@@ -118,7 +143,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const profile = await loadProfileFor(data.user.id);
       if (!profile) {
         await supabase.auth.signOut();
-        return { success: false, error: 'Account exists but the profile record is missing. Please register again or contact support.' };
+        return { success: false, error: 'Account exists but the profile record is missing. Please contact support — do not register again (your email is already taken).' };
       }
       setUser(profile);
       return { success: true, role: profile.role };
@@ -182,11 +207,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           avatarUrl = publicUrl?.publicUrl ?? null;
         }
       }
-      const { error: profileError } = await supabase.from('profiles').insert({ id: authUser.id, username, email, name, role: 'user', avatar_url: avatarUrl });
+      const { error: profileError } = await supabase.from('profiles').upsert({ id: authUser.id, username, email, name, role: 'user', avatar_url: avatarUrl }, { onConflict: 'id' });
       if (profileError) {
+        // The handle_new_user() trigger may already have created the row
+        // (e.g. when email confirmation is off, or the race between trigger
+        // and this upsert fired first). Only fail when no row exists at all.
         const exists = await loadProfileFor(authUser.id).catch(() => null);
         if (!exists) {
-          return { success: false, error: 'Account was created but the profile could not be saved. Please try logging in, or contact support.' };
+          return { success: false, error: profileSaveErrorMessage(profileError) };
         }
       }
       if (!data.session) return { success: true, needsConfirmation: true };
